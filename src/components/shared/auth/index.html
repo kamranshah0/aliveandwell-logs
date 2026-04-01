@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <button onclick="setCookie()">Set Cookie</button>
+  <button onclick="readCookie()">Read Cookie</button>
+
+  <pre id="out"></pre>
+
+  <script>
+    const API = 'https://selection-cook-reactions-receiving.trycloudflare.com/auth/admin/test';
+    // http://localhost:3000/auth/admin/test/set-cookie
+
+
+
+    async function setCookie() {
+      const r = await fetch(`${API}/set-cookie`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      out.textContent = await r.text();
+    }
+
+    async function readCookie() {
+      const r = await fetch(`${API}/read-cookie`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      out.textContent = JSON.stringify(await r.json(), null, 2);
+    }
+  </script>
+</body>
+</html>

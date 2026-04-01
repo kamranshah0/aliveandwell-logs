@@ -1,0 +1,81 @@
+import * as React from "react"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
+import { motion } from "framer-motion"
+
+import { cn } from "@/lib/utils"
+
+function Tabs({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  return (
+    <TabsPrimitive.Root
+      data-slot="tabs"
+      className={cn("flex flex-col gap-2", className)}
+      {...props}
+    />
+  )
+}
+
+function TabsList({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List>) {
+  return (
+    <TabsPrimitive.List
+      data-slot="tabs-list"
+      className={cn(
+        "text-muted-foreground inline-flex w-fit items-center justify-center rounded-lg p-2 bg-[#F0F2F5] border border-light-grey-700",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TabsTrigger({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+  return (
+    <TabsPrimitive.Trigger asChild data-slot="tabs-trigger" {...props}>
+      <motion.button
+        className={cn(
+          "data-[state=active]:bg-primary data-[state=active]:text-white rounded-md dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 text-sm font-medium whitespace-nowrap transition-[color,background,transform] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 p-1.5 px-3 cursor-pointer",
+          className
+        )}
+        whileHover={{ y: -1 }}
+        whileTap={{ scale: 0.97 }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
+      >
+        {children}
+      </motion.button>
+    </TabsPrimitive.Trigger>
+  )
+}
+
+function TabsContent({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+  return (
+    <TabsPrimitive.Content
+      data-slot="tabs-content"
+      asChild
+      {...props}
+    >
+      <motion.div
+        className={cn("flex-1 outline-none", className)}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
+        {children}
+      </motion.div>
+    </TabsPrimitive.Content>
+  )
+}
+
+export { Tabs, TabsList, TabsTrigger, TabsContent }
