@@ -9,6 +9,7 @@ export const TableColumns: ColumnDef<DailyLogType>[] = [
   {
     accessorKey: "date",
     header: "Date",
+    filterFn: 'dateRange' as any,
     cell: ({ row }) => <span className="whitespace-nowrap font-medium text-text-high-em">{row.original.date}</span>,
   },
   {

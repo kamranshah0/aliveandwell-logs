@@ -13,6 +13,13 @@ import { Skeleton } from "@/components/skeletons/skeleton";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { 
+  parse, 
+  isWithinInterval, 
+  startOfDay, 
+  endOfDay,
+  isValid 
+} from "date-fns";
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData, any>[];
@@ -50,6 +57,22 @@ export function DataTable<TData>({
       }
       return col;
     }),
+
+    filterFns: {
+      dateRange: (row, columnId, filterValue) => {
+        const value = row.getValue(columnId) as string;
+        if (!filterValue || !filterValue.from) return true;
+        
+        // Parse the row date (format MM/dd/yyyy)
+        const rowDate = parse(value, 'MM/dd/yyyy', new Date());
+        if (!isValid(rowDate)) return true;
+
+        const from = startOfDay(filterValue.from);
+        const to = filterValue.to ? endOfDay(filterValue.to) : endOfDay(filterValue.from);
+
+        return isWithinInterval(rowDate, { start: from, end: to });
+      },
+    },
 
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -98,7 +121,7 @@ export function DataTable<TData>({
           <div className="flex items-center gap-2">
             <Trash2 className="size-4 text-text-danger-em" />
             <span className="text-sm font-semibold text-text-danger-em">
-              {Object.keys(rowSelection).length} patient(s) selected
+              {Object.keys(rowSelection).length} record(s) selected
             </span>
           </div>
           <Button

@@ -21,3 +21,4 @@ export const exportDailyLogsCsv = () => api.get("/daily-log/export/csv");
 export const updateDailyLog = (id: string, payload: any) => api.patch(`/daily-log/${id}`, payload);
 
 export const deleteDailyLog = (id: string) => api.delete(`/daily-log/${id}`);
+export const getDailyLogStats = () => api.get("/daily-log/stats");

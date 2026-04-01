@@ -40,11 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const roleName = meRes.data.data.role?.name;
         const perms = meRes.data.data.role?.permissions || [];
         
-        if (roleName === "receptionist") {
-          document.body.classList.add("receptionist-theme");
-        } else {
-          document.body.classList.remove("receptionist-theme");
-        }
+        // if (roleName === "receptionist") {
+        //   document.body.classList.add("receptionist-theme");
+        // } else {
+        //   document.body.classList.remove("receptionist-theme");
+        // }
 
         console.log("AuthProvider: Permissions from getMe (direct):", perms);
         setPermissions(perms);

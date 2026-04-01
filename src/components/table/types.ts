@@ -12,13 +12,19 @@ export type SearchFilter<T> = {
 };
 
 export type SelectFilter<T> = {
-  id: string;
+  id: keyof T | string;
   type: "select";
   placeholder?: string;
   options: FilterOption[];
 };
 
-export type DataTableFilter<T> = SearchFilter<T> | SelectFilter<T>;
+export type DateRangeFilter<T> = {
+  id: keyof T | string;
+  type: "date-range";
+  placeholder?: string;
+};
+
+export type DataTableFilter<T> = SearchFilter<T> | SelectFilter<T> | DateRangeFilter<T>;
 
 export interface DataTableToolbarProps<TData> {
   table: Table<TData>;

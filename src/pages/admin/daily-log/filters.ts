@@ -15,4 +15,10 @@ export const DataFilters = [
       { label: "No", value: "no" },
     ],
   },
+  {
+    title: "Date Range",
+    id: "date",
+    type: "date-range",
+    placeholder: "Filter by date...",
+  },
 ];
