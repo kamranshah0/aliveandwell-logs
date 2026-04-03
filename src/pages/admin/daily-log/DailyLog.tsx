@@ -261,285 +261,261 @@ const DailyLog: React.FC = () => {
       />
 
       {isAdding && (
-        <Card className="border-primary/20 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300 rounded-md">
-          <CardHeader>
-            <CardTitle className="flex justify-between items-center text-lg">
-              {editingId ? "Edit Log Entry" : "Create New Entry"}
-              <Button variant="ghost" size="icon" onClick={handleCloseForm}><X className="size-4"/></Button>
+        <Card className="border-primary/20 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300 rounded-xl overflow-hidden mb-8 bg-white">
+          <CardHeader className="bg-primary/5 border-b py-3 px-4 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-bold text-primary uppercase tracking-wider">
+              {editingId ? "Modify Daily Log Entry" : "Add New Log Entry (Sheet View)"}
             </CardTitle>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-50 hover:text-red-500 rounded-full transition-colors" onClick={handleCloseForm}>
+              <X className="size-4"/>
+            </Button>
           </CardHeader>
-          <CardContent className="pt-0">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-              
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wider border-b pb-1">Patient Detail</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">First Name <span className="text-red-500">*</span></label>
-                    <Input {...register("firstName")} placeholder="Enter first name" />
-                    {errors.firstName && <p className="text-[10px] text-red-500">{errors.firstName.message}</p>}
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Last Name <span className="text-red-500">*</span></label>
-                    <Input {...register("lastName")} placeholder="Enter last name" />
-                    {errors.lastName && <p className="text-[10px] text-red-500">{errors.lastName.message}</p>}
-                  </div>
-                  <div className="space-y-1 flex flex-col">
-                    <label className="text-xs font-semibold">Date of Birth <span className="text-red-500">*</span></label>
-                    <Controller
-                      name="dob"
-                      control={control}
-                      render={({ field }) => (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant={"outline"} className={cn("justify-start text-left font-normal", !field.value && "text-muted-foreground", errors.dob && "border-red-500")}>
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? field.value : <span>Pick a date</span>}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value ? parse(field.value, 'MM/dd/yyyy', new Date()) : undefined}
-                              onSelect={(date) => field.onChange(date ? format(date, 'MM/dd/yyyy') : "")}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                    />
-                    {errors.dob && <p className="text-[10px] text-red-500 mt-1">{errors.dob.message}</p>}
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Doctor/NP Name</label>
-                    <Input {...register("doctorNpName")} placeholder="Enter name" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Lab</label>
-                    <Controller
-                      name="lab"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="yes">Yes</SelectItem>
-                            <SelectItem value="no">No</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Lab Rep</label>
-                    <Controller
-                      name="labRep"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="yes">Yes</SelectItem>
-                            <SelectItem value="no">No</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-                </div>
+          <CardContent className="p-0">
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="overflow-x-auto custom-scroll">
+                <div className="min-w-max pb-4">
+                  
+                  {/* UNIFIED SPREADSHEET GRID */}
+                  <div className="grid grid-cols-[160px_150px_150px_130px_160px_85px_85px_repeat(10,55px)_180px_90px_110px_130px_140px_130px_90px_90px_130px_130px_230px] border-b bg-gray-50/50">
+                    
+                    {/* ROW 1: HEADERS */}
+                    <div className="contents text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Entry Date</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">First Name</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Last Name</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">DOB</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Doctor/NP</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Lab</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Lab Rep</div>
+                      
+                      {/* Checkbox Headers */}
+                      {['New Pt', 'Enrolled', 'Primary', 'Results', 'Address', 'Ins.', '1-Time', 'Disen.', 'HIV', 'Leave'].map(h => (
+                        <div key={h} className="py-3 px-1 border-r border-gray-100 flex items-center justify-center text-[9px] font-black leading-tight text-gray-400">{h}</div>
+                      ))}
 
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4 bg-muted/20 rounded-lg border border-primary/10">
-                  {[
-                    { id: 'newPatient', label: 'New Patient' },
-                    { id: 'enrolled', label: 'Enrolled' },
-                    { id: 'primaryCarePatient', label: 'Primary Care' },
-                    { id: 'results', label: 'Results' },
-                    { id: 'proofOfAddress', label: 'Proof of Address' },
-                    { id: 'insuranceCheck', label: 'Insurance Check' },
-                    { id: 'oneTimeTesting', label: 'One Time Testing' },
-                    { id: 'disenrolled', label: 'Disenrolled' },
-                    { id: 'hivTestNoEnroll', label: 'HIV TEST' },
-                    { id: 'disregardLeft', label: 'Disregard/Left' },
-                  ].map((item) => (
-                    <div key={item.id} className="flex items-center space-x-2">
-                      <Controller
-                        name={item.id as any}
-                        control={control}
-                        render={({ field }) => (
-                          <Checkbox id={item.id} checked={field.value} onCheckedChange={field.onChange} />
-                        )}
-                      />
-                      <label htmlFor={item.id} className="text-[11px] font-medium cursor-pointer">{item.label}</label>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Visit Type</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Copay ($)</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Source</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Receipt #</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Marketing</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Next Appt</div>
+                      <div className="py-3 px-2 border-r border-gray-100 flex items-center justify-center text-[9px] text-gray-400">Cancel Fee</div>
+                      <div className="py-3 px-2 border-r border-gray-100 flex items-center justify-center text-[9px] text-gray-400">Program</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">DH Rep</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">DH Form #</div>
+                      <div className="py-3 px-4 flex items-center justify-center">Actions</div>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wider border-b pb-1">Cash Visit</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Type of Visit</label>
-                    <Controller
-                      name="cashVisit"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger><SelectValue placeholder="Select Visit" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="One Time Test – 350">One Time Test – 350</SelectItem>
-                            <SelectItem value="Lab – 5">Lab – 5</SelectItem>
-                            <SelectItem value="HIV Test – 25">HIV Test – 25</SelectItem>
-                            <SelectItem value="IV – 125">IV – 125</SelectItem>
-                            <SelectItem value="Treatment – 75">Treatment – 75</SelectItem>
-                            <SelectItem value="Medical Records – 50">Medical Records – 50</SelectItem>
-                            <SelectItem value="None">None</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
+                    {/* ROW 2: INPUTS */}
+                    <div className="contents bg-white">
+                      {/* Entry Date (Now Selectable) */}
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="date"
+                          control={control}
+                          render={({ field }) => (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" className={cn("w-full h-9 justify-center text-center bg-white border-gray-200 text-xs font-semibold", !field.value && "text-gray-400")}>
+                                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                                  {field.value || format(new Date(), 'MM/dd/yyyy')}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar mode="single" selected={field.value ? parse(field.value, 'MM/dd/yyyy', new Date()) : undefined} onSelect={(date) => field.onChange(date ? format(date, 'MM/dd/yyyy') : format(new Date(), 'MM/dd/yyyy'))} initialFocus />
+                              </PopoverContent>
+                            </Popover>
+                          )}
+                        />
+                      </div>
+                      {/* First Name */}
+                      <div className="p-3 border-r border-t">
+                        <Input {...register("firstName")} className="h-9 text-xs" placeholder="First Name" />
+                        {errors.firstName && <p className="text-[9px] text-red-500 mt-1">{errors.firstName.message}</p>}
+                      </div>
+                      {/* Last Name */}
+                      <div className="p-3 border-r border-t">
+                        <Input {...register("lastName")} className="h-9 text-xs" placeholder="Last Name" />
+                        {errors.lastName && <p className="text-[9px] text-red-500 mt-1">{errors.lastName.message}</p>}
+                      </div>
+                      {/* DOB */}
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="dob"
+                          control={control}
+                          render={({ field }) => (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" className={cn("w-full h-9 justify-start text-left bg-white border-gray-200 text-xs", !field.value && "text-gray-400")}>
+                                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                                  {field.value || "DOB"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar mode="single" selected={field.value ? parse(field.value, 'MM/dd/yyyy', new Date()) : undefined} onSelect={(date) => field.onChange(date ? format(date, 'MM/dd/yyyy') : "")} initialFocus />
+                              </PopoverContent>
+                            </Popover>
+                          )}
+                        />
+                      </div>
+                      {/* Doctor/NP */}
+                      <div className="p-3 border-r border-t">
+                        <Input {...register("doctorNpName")} className="h-9 text-xs" placeholder="Provider" />
+                      </div>
+                      {/* Lab Dropdowns */}
+                      <div className="p-3 border-r border-t text-center">
+                        <Controller
+                          name="lab"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t text-center">
+                        <Controller
+                          name="labRep"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
 
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wider border-b pb-1">Copay Amount</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Copay Amount ($)</label>
-                    <Input {...register("copayAmount")} placeholder="0.00" type="text" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Copay Source</label>
-                    <Controller
-                      name="copaySource"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger><SelectValue placeholder="Select Source" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Cash">Cash</SelectItem>
-                            <SelectItem value="Credit Card">Credit Card</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Copay Receipt #</label>
-                    <Input {...register("copayReceiptNumber")} placeholder="Enter receipt number" />
-                  </div>
-                </div>
-              </div>
+                      {/* Checkboxes */}
+                      {[
+                        'newPatient', 'enrolled', 'primaryCarePatient', 'results', 'proofOfAddress', 
+                        'insuranceCheck', 'oneTimeTesting', 'disenrolled', 'hivTestNoEnroll', 'disregardLeft'
+                      ].map(id => (
+                        <div key={id} className="p-3 border-r border-t flex items-center justify-center">
+                          <Controller
+                            name={id as any}
+                            control={control}
+                            render={({ field }) => (
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} className="size-4.5" />
+                            )}
+                          />
+                        </div>
+                      ))}
 
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wider border-b pb-1">Marketing</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Marketing Source</label>
-                    <Controller
-                      name="marketingSource"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger><SelectValue placeholder="Select Marketing Source" /></SelectTrigger>
-                          <SelectContent>
-                            {["Google", "Zoe Doc", "Website", "Outreach", "TikTok", "Facebook", "Instagram", "Y tube", "Twitter", "Yelp", "Mail", "Radi"].map(m => (
-                               <SelectItem key={m} value={m}>{m}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
+                      {/* Financial / Misc */}
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="cashVisit"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {["One Time Test – 350", "Lab – 5", "HIV Test – 25", "IV – 125", "Treatment – 75", "Medical Records – 50", "None"].map(v => (
+                                  <SelectItem key={v} value={v} className="text-xs">{v}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t">
+                        <Input {...register("copayAmount")} className="h-9 text-xs text-center" placeholder="0.00" />
+                      </div>
+                      <div className="p-3 border-r border-t text-center">
+                        <Controller
+                          name="copaySource"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="Cash">Cash</SelectItem><SelectItem value="Credit Card">Credit Card</SelectItem></SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t">
+                        <Input {...register("copayReceiptNumber")} className="h-9 text-xs" placeholder="Receipt #" />
+                      </div>
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="marketingSource"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Source" /></SelectTrigger>
+                              <SelectContent>
+                                {["Google", "Zoe Doc", "Website", "Outreach", "TikTok", "Facebook", "Instagram", "Y tube", "Twitter", "Yelp", "Mail", "Radi"].map(m => (
+                                   <SelectItem key={m} value={m} className="text-xs">{m}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="nextApptDate"
+                          control={control}
+                          render={({ field }) => (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" className="w-full h-9 justify-start text-left bg-white border-gray-200 text-xs">
+                                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                                  {field.value || "Select"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar mode="single" selected={field.value ? parse(field.value, 'MM/dd/yyyy', new Date()) : undefined} onSelect={(date) => field.onChange(date ? format(date, 'MM/dd/yyyy') : "")} initialFocus />
+                              </PopoverContent>
+                            </Popover>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="p-3 border-r border-t text-center">
+                        <Controller
+                          name="adviseCancellationFee"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t text-center">
+                        <Controller
+                          name="adviseProgram"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t text-center">
+                        <Input {...register("dhFormRep")} className="h-9 text-xs" placeholder="Rep name" />
+                      </div>
+                      <div className="p-3 border-r border-t text-center">
+                        <Input {...register("dhFormNumber")} className="h-9 text-xs" placeholder="Form #" />
+                      </div>
 
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-primary uppercase tracking-wider border-b pb-1">Next Appt Type</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  <div className="space-y-1 flex flex-col">
-                    <label className="text-xs font-semibold">Next Appt Date</label>
-                    <Controller
-                      name="nextApptDate"
-                      control={control}
-                      render={({ field }) => (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant={"outline"} className={cn("justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? field.value : <span>Select Date</span>}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value ? parse(field.value, 'MM/dd/yyyy', new Date()) : undefined}
-                              onSelect={(date) => field.onChange(date ? format(date, 'MM/dd/yyyy') : "")}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                    />
-                  </div>
-                  {[
-                    { id: 'adviseCancellationFee', label: 'Advise Cancellation Fee' },
-                    { id: 'adviseProgram', label: 'Advise Program' },
-                    { id: 'providerPrescribed', label: 'Provider Prescribed' },
-                    { id: 'providerCloseNote', label: 'Provider Close Note' },
-                    { id: 'dhFormElectronic', label: 'DH Form Electronic' },
-                  ].map(item => (
-                    <div key={item.id} className="space-y-1">
-                      <label className="text-xs font-semibold">{item.label}</label>
-                      <Controller
-                        name={item.id as any}
-                        control={control}
-                        render={({ field }) => (
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger><SelectValue placeholder="Yes/No" /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="yes">Yes</SelectItem>
-                              <SelectItem value="no">No</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
+                      {/* Action Cell */}
+                      <div className="p-3 border-t flex gap-2 justify-center bg-gray-50/10">
+                         <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90 text-white font-bold h-9 px-4 shrink-0 transition-all shadow" disabled={createMutation.isPending || updateMutation.isPending}>
+                          {createMutation.isPending || updateMutation.isPending ? "SAVING..." : (editingId ? "UPDATE RECORD" : "SAVE ENTRY")}
+                        </Button>
+                         <Button type="button" variant="outline" size="sm" className="h-9 font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 border-gray-200 px-3" onClick={handleCloseForm}>CANCEL</Button>
+                      </div>
                     </div>
-                  ))}
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">Provider Prescriber Type</label>
-                    <Controller
-                      name="providerPrescriberType"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger><SelectValue placeholder="Select Type" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Prevention">Prevention</SelectItem>
-                            <SelectItem value="Primary">Primary</SelectItem>
-                            <SelectItem value="Treatment">Treatment</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">DH Form Rep</label>
-                    <Input {...register("dhFormRep")} placeholder="Rep name" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold">DH Form #</label>
-                    <Input {...register("dhFormNumber")} placeholder="Form number" />
                   </div>
                 </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={handleCloseForm}>Cancel</Button>
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {createMutation.isPending || updateMutation.isPending ? "Saving..." : (editingId ? "Update Log" : "Save Log")}
-                </Button>
               </div>
             </form>
           </CardContent>
