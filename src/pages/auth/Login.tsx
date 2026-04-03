@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { CircleCheck, MessageSquareText, UsersRound } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { login } from "@/api/auth.api";
+import { login, logout as logoutApi } from "@/api/auth.api";
 import { AuthContext } from "@/auth/AuthContext";
 
 const Login = () => {
@@ -21,10 +21,11 @@ const Login = () => {
 
   const { mutate: loginUser, isPending } = useMutation({
     mutationFn: login,
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const data = res.data.data;
 
       if (data.requiresMfa) {
+        // ✅ MFA flow — role check will happen in VerifyOtp
         navigate("/verify-otp", {
           state: {
             email: data.email,
@@ -32,7 +33,15 @@ const Login = () => {
           },
         });
       } else {
-        // ✅ Direct Success (No MFA)
+        // ✅ Direct Success (No MFA) — role check here
+        const roleName = data.roleName || data.role?.name;
+        if (roleName !== "receptionist") {
+          // Wrong role — block access
+          try { await logoutApi(); } catch (_) {}
+          setError("Access denied. This portal is for Receptionists only.");
+          return;
+        }
+
         setAuth({
           user: {
             email: data.email,

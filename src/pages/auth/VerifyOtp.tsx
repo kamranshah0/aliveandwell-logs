@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import OtpInput from "@/components/shared/auth/OtpInput";
 import AuthButton from "@/components/shared/auth/AuthButton";
 import { Label } from "@/components/ui/label";
-import { verifyMfa } from "@/api/auth.api";
+import { verifyMfa, logout as logoutApi } from "@/api/auth.api";
 import { AuthContext } from "@/auth/AuthContext";
 import { AlertCircle, CircleCheck, MessageSquareText, UsersRound } from "lucide-react";
  
@@ -26,8 +26,16 @@ const VerifyOtp = () => {
 
   const { mutate: verifyOtp, isPending } = useMutation({
     mutationFn: verifyMfa,
-    onSuccess: (res) => {
+    onSuccess: async (res) => {
       const data = res.data.data;
+
+      // ✅ Role check — only receptionist allowed in Logs Dashboard
+      const roleName = data.roleName || data.role?.name;
+      if (roleName !== "receptionist") {
+        try { await logoutApi(); } catch (_) {}
+        setError("Access denied. This portal is for Receptionists only.");
+        return;
+      }
 
       setAuth({
         user: {
