@@ -29,11 +29,12 @@ const VerifyOtp = () => {
     onSuccess: async (res) => {
       const data = res.data.data;
 
-      // ✅ Role check — only receptionist allowed in Logs Dashboard
+      // ✅ Role check — receptionist & admin allowed in Logs Dashboard
       const roleName = data.roleName || data.role?.name;
-      if (roleName !== "receptionist") {
+      const allowedRoles = ["receptionist", "admin", "administrator"];
+      if (roleName && !allowedRoles.includes(roleName)) {
         try { await logoutApi(); } catch (_) {}
-        setError("Access denied. This portal is for Receptionists only.");
+        setError("Access denied. This portal is for Receptionists and Administrators only.");
         return;
       }
 
