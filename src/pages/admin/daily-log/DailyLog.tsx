@@ -75,7 +75,7 @@ const getDefaultValues = (userName?: string) => ({
   dob: "",
   doctorNpName: "",
   lab: 'no',
-  labRep: 'no',
+  labRep: '',
   newPatient: false,
   enrolled: false,
   primaryCarePatient: false,
@@ -276,7 +276,7 @@ const DailyLog: React.FC = () => {
                 <div className="min-w-max pb-4">
                   
                   {/* UNIFIED SPREADSHEET GRID */}
-                  <div className="grid grid-cols-[160px_150px_150px_130px_160px_85px_85px_repeat(10,55px)_180px_90px_110px_130px_140px_130px_90px_90px_130px_130px_230px] border-b bg-gray-50/50">
+                  <div className="grid grid-cols-[160px_150px_150px_160px_160px_85px_200px_repeat(10,55px)_200px_90px_110px_130px_140px_130px_90px_90px_130px_130px_230px] border-b bg-gray-50/50">
                     
                     {/* ROW 1: HEADERS */}
                     <div className="contents text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">
@@ -286,7 +286,7 @@ const DailyLog: React.FC = () => {
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">DOB</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Doctor/NP</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Lab</div>
-                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Lab Rep</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Lab Representative</div>
                       
                       {/* Checkbox Headers */}
                       {['New Pt', 'Enrolled', 'Primary', 'Results', 'Address', 'Ins.', '1-Time', 'Disen.', 'HIV', 'Leave'].map(h => (
@@ -376,16 +376,7 @@ const DailyLog: React.FC = () => {
                         />
                       </div>
                       <div className="p-3 border-r border-t text-center">
-                        <Controller
-                          name="labRep"
-                          control={control}
-                          render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                              <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
-                            </Select>
-                          )}
-                        />
+                        <Input {...register("labRep")} className="h-9 text-xs" placeholder="Lab Rep Name" />
                       </div>
 
                       {/* Checkboxes */}
@@ -398,7 +389,7 @@ const DailyLog: React.FC = () => {
                             name={id as any}
                             control={control}
                             render={({ field }) => (
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} className="size-4.5" />
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} className="size-5 " />
                             )}
                           />
                         </div>
@@ -455,6 +446,7 @@ const DailyLog: React.FC = () => {
                           )}
                         />
                       </div>
+
                       <div className="p-3 border-r border-t">
                         <Controller
                           name="nextApptDate"
@@ -487,6 +479,7 @@ const DailyLog: React.FC = () => {
                           )}
                         />
                       </div>
+
                       <div className="p-3 border-r border-t text-center">
                         <Controller
                           name="adviseProgram"

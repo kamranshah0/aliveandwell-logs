@@ -19,6 +19,30 @@ export const clearAccessToken = () => {
 };
 
 // ================================
+// RESPONSE INTERCEPTOR
+// ================================
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 403) {
+      const errorCode = error.response?.data?.errorCode;
+      const detectedIp = error.response?.data?.detectedIp;
+
+      if (errorCode === 'IP_RESTRICTED') {
+        // Prevent infinite loop if already on the unauthorized page
+        if (window.location.pathname !== '/unauthorized-access') {
+          const redirectUrl = detectedIp 
+            ? `/unauthorized-access?ip=${detectedIp}` 
+            : '/unauthorized-access';
+          window.location.href = redirectUrl;
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ================================
 // REQUEST INTERCEPTOR
 // ================================
 api.interceptors.request.use((config) => {
@@ -26,4 +50,4 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
-}); 
+});

@@ -51,6 +51,7 @@ import AuthenticationLoading from "@/components/molecules/AuthenticationLoading"
 import MedicationDosageDashboard from "@/pages/admin/medication-dosages/dashboard/MedicationDosageDashboard";
 import CreateMedicationDosage from "@/pages/admin/medication-dosages/create-dosage/CreateMedicationDosage";
 import EditMedicationDosage from "@/pages/admin/medication-dosages/edit-dosage/EditMedicationDosage";
+import UnauthorizedIp from "@/pages/admin/error-pages/UnauthorizedIp";
 
 console.log("NAV_ITEMS loaded:", NAV_ITEMS);
 
@@ -390,6 +391,9 @@ export default function AppRoutes() {
           }
         />
       </Route>
+
+      {/* Standalone Error Routes */}
+      <Route path="/unauthorized-access" element={<UnauthorizedIp />} />
 
       {/* Fallback Route */}
       <Route path="/*" element={<NotFound />} />

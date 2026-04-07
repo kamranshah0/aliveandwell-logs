@@ -83,12 +83,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccessToken(accessToken);
       setUser(user);
       
-      const roleName = user.role?.name;
-      if (roleName === "receptionist") {
-        document.body.classList.add("receptionist-theme");
-      } else {
-        document.body.classList.remove("receptionist-theme");
-      }
+      
+      
+        // document.body.classList.remove("receptionist-theme");
+      
 
       setPermissions(permissions);
       setStatus("AUTHENTICATED");
