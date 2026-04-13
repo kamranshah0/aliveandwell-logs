@@ -41,14 +41,13 @@ const dailyLogSchema = z.object({
   labRep: z.string().optional().or(z.literal("")),
   newPatient: z.boolean().optional(),
   enrolled: z.boolean().optional(),
-  primaryCarePatient: z.boolean().optional(),
-  results: z.boolean().optional(),
-  proofOfAddress: z.boolean().optional(),
-  insuranceCheck: z.boolean().optional(),
-  oneTimeTesting: z.boolean().optional(),
-  disenrolled: z.boolean().optional(),
-  hivTestNoEnroll: z.boolean().optional(),
-  disregardLeft: z.boolean().optional(),
+  proofOfAddress: z.string().optional().or(z.literal("no")),
+  eligibilityCheck: z.string().optional().or(z.literal("no")),
+  insuranceCheck: z.string().optional().or(z.literal("no")),
+  visitType: z.string().optional().or(z.literal("")),
+  visitServices: z.string().optional().or(z.literal("")),
+  drOrdered: z.string().optional().or(z.literal("")),
+  pharmacy: z.string().optional().or(z.literal("")),
   cashVisit: z.string().optional().or(z.literal("")),
   copayAmount: z.string().optional().or(z.literal("")),
   copaySource: z.string().optional().or(z.literal("")),
@@ -57,12 +56,8 @@ const dailyLogSchema = z.object({
   nextApptDate: z.string().optional().or(z.literal("")),
   adviseCancellationFee: z.string().optional().or(z.literal("")),
   adviseProgram: z.string().optional().or(z.literal("")),
-  providerPrescribed: z.string().optional().or(z.literal("")),
-  providerPrescriberType: z.string().optional().or(z.literal("")),
-  providerCloseNote: z.string().optional().or(z.literal("")),
   dhFormRep: z.string().optional().or(z.literal("")),
   dhFormNumber: z.string().optional().or(z.literal("")),
-  dhFormElectronic: z.string().optional().or(z.literal("")),
 });
 
 type DailyLogFormData = z.infer<typeof dailyLogSchema>;
@@ -78,14 +73,13 @@ const getDefaultValues = (userName?: string) => ({
   labRep: '',
   newPatient: false,
   enrolled: false,
-  primaryCarePatient: false,
-  results: false,
-  proofOfAddress: false,
-  insuranceCheck: false,
-  oneTimeTesting: false,
-  disenrolled: false,
-  hivTestNoEnroll: false,
-  disregardLeft: false,
+  proofOfAddress: 'no',
+  eligibilityCheck: 'no',
+  insuranceCheck: 'no',
+  visitType: '',
+  visitServices: '',
+  drOrdered: '',
+  pharmacy: '',
   cashVisit: 'None',
   copayAmount: "",
   copaySource: 'Cash',
@@ -93,12 +87,8 @@ const getDefaultValues = (userName?: string) => ({
   nextApptDate: "",
   adviseCancellationFee: 'no',
   adviseProgram: 'no',
-  providerPrescribed: 'no',
-  providerPrescriberType: 'Prevention',
-  providerCloseNote: 'no',
   dhFormRep: "",
   dhFormNumber: "",
-  dhFormElectronic: 'no',
 });
 
 const DailyLog: React.FC = () => {
@@ -150,21 +140,21 @@ const DailyLog: React.FC = () => {
 
   const formMethods = useForm<DailyLogFormData>({
     resolver: zodResolver(dailyLogSchema),
-    defaultValues: getDefaultValues(user?.name)
+    defaultValues: getDefaultValues(user?.user?.name)
   });
 
   const { register, handleSubmit, control, reset, setValue, formState: { errors } } = formMethods;
 
   useEffect(() => {
-    if (user?.name && !editingId && !isAdding) {
-      setValue('representative', user.name);
+    if (user?.user?.name && !editingId && !isAdding) {
+      setValue('representative', user.user.name);
     }
   }, [user, setValue, editingId, isAdding]);
 
   const handleCloseForm = () => {
     setIsAdding(false);
     setEditingId(null);
-    reset(getDefaultValues(user?.name));
+    reset(getDefaultValues(user?.user?.name));
   };
 
   const onEdit = (log: DailyLogType) => {
@@ -276,24 +266,27 @@ const DailyLog: React.FC = () => {
                 <div className="min-w-max pb-4">
                   
                   {/* UNIFIED SPREADSHEET GRID */}
-                  <div className="grid grid-cols-[160px_150px_150px_160px_160px_85px_200px_repeat(10,55px)_200px_90px_110px_130px_140px_130px_90px_90px_130px_130px_230px] border-b bg-gray-50/50">
+                  <div className="grid grid-cols-[160px_180px_150px_150px_160px_160px_85px_200px_55px_55px_80px_80px_80px_160px_160px_160px_160px_90px_110px_130px_140px_130px_90px_90px_130px_130px_230px] border-b bg-gray-50/50">
                     
                     {/* ROW 1: HEADERS */}
                     <div className="contents text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Entry Date</div>
-                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">First Name</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Rep Name</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Last Name</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">First Name</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">DOB</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Doctor/NP</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Lab</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Lab Representative</div>
-                      
-                      {/* Checkbox Headers */}
-                      {['New Pt', 'Enrolled', 'Primary', 'Results', 'Address', 'Ins.', '1-Time', 'Disen.', 'HIV', 'Leave'].map(h => (
-                        <div key={h} className="py-3 px-1 border-r border-gray-100 flex items-center justify-center text-[9px] font-black leading-tight text-gray-400">{h}</div>
-                      ))}
-
+                      <div className="py-3 px-1 border-r border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-400">New Pt</div>
+                      <div className="py-3 px-1 border-r border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-400">Enrolled</div>
+                      <div className="py-3 px-1 border-r border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-400">Address</div>
+                      <div className="py-3 px-1 border-r border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-400">Eligibility</div>
+                      <div className="py-3 px-1 border-r border-gray-100 flex items-center justify-center text-[9px] font-black text-gray-400">Insurance</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Visit Type</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Visit Services</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Dr Ordered</div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Pharmacy</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Copay ($)</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Source</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">Receipt #</div>
@@ -303,12 +296,12 @@ const DailyLog: React.FC = () => {
                       <div className="py-3 px-2 border-r border-gray-100 flex items-center justify-center text-[9px] text-gray-400">Program</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">DH Rep</div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">DH Form #</div>
-                      <div className="py-3 px-4 flex items-center justify-center">Actions</div>
+                      <div className="py-3 px-4 flex items-center justify-center text-gray-400">Actions</div>
                     </div>
 
                     {/* ROW 2: INPUTS */}
                     <div className="contents bg-white">
-                      {/* Entry Date (Now Selectable) */}
+                      {/* Entry Date */}
                       <div className="p-3 border-r border-t">
                         <Controller
                           name="date"
@@ -328,15 +321,19 @@ const DailyLog: React.FC = () => {
                           )}
                         />
                       </div>
-                      {/* First Name */}
+                      {/* Representative (Read-Only) */}
                       <div className="p-3 border-r border-t">
-                        <Input {...register("firstName")} className="h-9 text-xs" placeholder="First Name" />
-                        {errors.firstName && <p className="text-[9px] text-red-500 mt-1">{errors.firstName.message}</p>}
+                        <Input {...register("representative")} className="h-9 text-xs bg-gray-50 font-bold" disabled readOnly />
                       </div>
                       {/* Last Name */}
                       <div className="p-3 border-r border-t">
                         <Input {...register("lastName")} className="h-9 text-xs" placeholder="Last Name" />
                         {errors.lastName && <p className="text-[9px] text-red-500 mt-1">{errors.lastName.message}</p>}
+                      </div>
+                      {/* First Name */}
+                      <div className="p-3 border-r border-t">
+                        <Input {...register("firstName")} className="h-9 text-xs" placeholder="First Name" />
+                        {errors.firstName && <p className="text-[9px] text-red-500 mt-1">{errors.firstName.message}</p>}
                       </div>
                       {/* DOB */}
                       <div className="p-3 border-r border-t">
@@ -362,7 +359,7 @@ const DailyLog: React.FC = () => {
                       <div className="p-3 border-r border-t">
                         <Input {...register("doctorNpName")} className="h-9 text-xs" placeholder="Provider" />
                       </div>
-                      {/* Lab Dropdowns */}
+                      {/* Lab Dropdown */}
                       <div className="p-3 border-r border-t text-center">
                         <Controller
                           name="lab"
@@ -375,36 +372,79 @@ const DailyLog: React.FC = () => {
                           )}
                         />
                       </div>
+                      {/* Lab Rep */}
                       <div className="p-3 border-r border-t text-center">
                         <Input {...register("labRep")} className="h-9 text-xs" placeholder="Lab Rep Name" />
                       </div>
 
-                      {/* Checkboxes */}
-                      {[
-                        'newPatient', 'enrolled', 'primaryCarePatient', 'results', 'proofOfAddress', 
-                        'insuranceCheck', 'oneTimeTesting', 'disenrolled', 'hivTestNoEnroll', 'disregardLeft'
-                      ].map(id => (
-                        <div key={id} className="p-3 border-r border-t flex items-center justify-center">
-                          <Controller
-                            name={id as any}
-                            control={control}
-                            render={({ field }) => (
-                              <Checkbox checked={field.value} onCheckedChange={field.onChange} className="size-5 " />
-                            )}
-                          />
-                        </div>
-                      ))}
-
-                      {/* Financial / Misc */}
-                      <div className="p-3 border-r border-t">
+                      {/* Checkboxes (New Pt, Enrolled) */}
+                      <div className="p-3 border-r border-t flex items-center justify-center">
                         <Controller
-                          name="cashVisit"
+                          name="newPatient"
+                          control={control}
+                          render={({ field }) => (
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} className="size-5" />
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t flex items-center justify-center">
+                        <Controller
+                          name="enrolled"
+                          control={control}
+                          render={({ field }) => (
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} className="size-5" />
+                          )}
+                        />
+                      </div>
+
+                      {/* Dropdowns (Address, Eligibility, Insurance) */}
+                      <div className="p-3 border-r border-t text-center">
+                        <Controller
+                          name="proofOfAddress"
                           control={control}
                           render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value}>
                               <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t text-center">
+                        <Controller
+                          name="eligibilityCheck"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t text-center">
+                        <Controller
+                          name="insuranceCheck"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent><SelectItem value="yes">Yes</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+
+                      {/* Categorical Dropdowns (Visit Type, Services, Order, Pharmacy) */}
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="visitType"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Visit Type" /></SelectTrigger>
                               <SelectContent>
-                                {["One Time Test – 350", "Lab – 5", "HIV Test – 25", "IV – 125", "Treatment – 75", "Medical Records – 50", "None"].map(v => (
+                                {["New Pt", "Preventative", "Primary Care", "Results", "Followup", "Disenroll", "Disregarded/Left"].map(v => (
                                   <SelectItem key={v} value={v} className="text-xs">{v}</SelectItem>
                                 ))}
                               </SelectContent>
@@ -412,6 +452,56 @@ const DailyLog: React.FC = () => {
                           )}
                         />
                       </div>
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="visitServices"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Services" /></SelectTrigger>
+                              <SelectContent>
+                                {["Assistant Program", "Emergency Program"].map(s => (
+                                  <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="drOrdered"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Dr Ordered" /></SelectTrigger>
+                              <SelectContent>
+                                {["New Prescription", "Refill Prescription", "No Prescription", "Prescription on File"].map(o => (
+                                  <SelectItem key={o} value={o} className="text-xs">{o}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="pharmacy"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Pharmacy" /></SelectTrigger>
+                              <SelectContent>
+                                {["Alive and Well", "Pharmco", "Walgreens"].map(p => (
+                                  <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+
+                      {/* Remaining Financial / Misc */}
                       <div className="p-3 border-r border-t">
                         <Input {...register("copayAmount")} className="h-9 text-xs text-center" placeholder="0.00" />
                       </div>

@@ -15,16 +15,17 @@ export const TableColumns: ColumnDef<DailyLogType>[] = [
   {
     accessorKey: "representative",
     header: "Rep",
-    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.representative}</span>,
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em font-bold">{row.original.representative}</span>,
   },
   {
-    accessorKey: "patientName",
-    header: "Patient Name",
-    cell: ({ row }) => (
-      <span className="whitespace-nowrap font-bold text-text-high-em">
-        {row.original.firstName} {row.original.lastName}
-      </span>
-    ),
+    accessorKey: "lastName",
+    header: "Last Name",
+    cell: ({ row }) => <span className="whitespace-nowrap font-bold text-text-high-em">{row.original.lastName}</span>,
+  },
+  {
+    accessorKey: "firstName",
+    header: "First Name",
+    cell: ({ row }) => <span className="whitespace-nowrap font-bold text-text-high-em">{row.original.firstName}</span>,
   },
   {
     accessorKey: "dob",
@@ -57,54 +58,54 @@ export const TableColumns: ColumnDef<DailyLogType>[] = [
     cell: ({ row }) => renderCheck(row.original.enrolled),
   },
   {
-    accessorKey: "primaryCarePatient",
-    header: "Prim.",
-    cell: ({ row }) => renderCheck(row.original.primaryCarePatient),
-  },
-  {
-    accessorKey: "results",
-    header: "Res.",
-    cell: ({ row }) => renderCheck(row.original.results),
-  },
-  {
     accessorKey: "proofOfAddress",
     header: "Addr.",
-    cell: ({ row }) => renderCheck(row.original.proofOfAddress),
+    cell: ({ row }) => <span className="capitalize text-text-med-em">{row.original.proofOfAddress}</span>,
+  },
+  {
+    accessorKey: "eligibilityCheck",
+    header: "Elig.",
+    cell: ({ row }) => <span className="capitalize text-text-med-em">{row.original.eligibilityCheck}</span>,
   },
   {
     accessorKey: "insuranceCheck",
     header: "Ins.",
-    cell: ({ row }) => renderCheck(row.original.insuranceCheck),
+    cell: ({ row }) => <span className="capitalize text-text-med-em">{row.original.insuranceCheck}</span>,
   },
   {
-    accessorKey: "oneTimeTesting",
-    header: "OTT",
-    cell: ({ row }) => renderCheck(row.original.oneTimeTesting),
+    accessorKey: "visitType",
+    header: "Visit Type",
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.visitType}</span>,
   },
   {
-    accessorKey: "disenrolled",
-    header: "Disenr.",
-    cell: ({ row }) => renderCheck(row.original.disenrolled),
+    accessorKey: "visitServices",
+    header: "Services",
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.visitServices}</span>,
   },
   {
-    accessorKey: "hivTestNoEnroll",
-    header: "HIV",
-    cell: ({ row }) => renderCheck(row.original.hivTestNoEnroll),
+    accessorKey: "drOrdered",
+    header: "Dr Ordered",
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.drOrdered}</span>,
   },
   {
-    accessorKey: "disregardLeft",
-    header: "Left",
-    cell: ({ row }) => renderCheck(row.original.disregardLeft),
-  },
-  {
-    accessorKey: "cashVisit",
-    header: "Cash Visit",
-    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.cashVisit}</span>,
+    accessorKey: "pharmacy",
+    header: "Pharmacy",
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.pharmacy}</span>,
   },
   {
     accessorKey: "copayAmount",
     header: "Copay",
     cell: ({ row }) => <span className="text-text-med-em font-semibold">${row.original.copayAmount || '0.00'}</span>,
+  },
+  {
+    accessorKey: "copaySource",
+    header: "Source",
+    cell: ({ row }) => <span className="text-text-med-em">{row.original.copaySource}</span>,
+  },
+  {
+    accessorKey: "copayReceiptNumber",
+    header: "Receipt",
+    cell: ({ row }) => <span className="text-text-med-em">{row.original.copayReceiptNumber}</span>,
   },
   {
     accessorKey: "marketingSource",
@@ -115,5 +116,25 @@ export const TableColumns: ColumnDef<DailyLogType>[] = [
     accessorKey: "nextApptDate",
     header: "Next Appt",
     cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.nextApptDate}</span>,
+  },
+  {
+    accessorKey: "adviseCancellationFee",
+    header: "Can. Fee",
+    cell: ({ row }) => <span className="capitalize text-text-med-em">{row.original.adviseCancellationFee}</span>,
+  },
+  {
+    accessorKey: "adviseProgram",
+    header: "Prog.",
+    cell: ({ row }) => <span className="capitalize text-text-med-em">{row.original.adviseProgram}</span>,
+  },
+  {
+    accessorKey: "dhFormRep",
+    header: "DH Rep",
+    cell: ({ row }) => <span className="text-text-med-em">{row.original.dhFormRep}</span>,
+  },
+  {
+    accessorKey: "dhFormNumber",
+    header: "DH Form",
+    cell: ({ row }) => <span className="text-text-med-em">{row.original.dhFormNumber}</span>,
   },
 ];
