@@ -83,16 +83,6 @@ export const TableColumns: ColumnDef<DailyLogType>[] = [
     cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.visitServices}</span>,
   },
   {
-    accessorKey: "drOrdered",
-    header: "Dr Ordered",
-    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.drOrdered}</span>,
-  },
-  {
-    accessorKey: "pharmacy",
-    header: "Pharmacy",
-    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.pharmacy}</span>,
-  },
-  {
     accessorKey: "copayAmount",
     header: "Copay",
     cell: ({ row }) => <span className="text-text-med-em font-semibold">${row.original.copayAmount || '0.00'}</span>,
@@ -136,5 +126,15 @@ export const TableColumns: ColumnDef<DailyLogType>[] = [
     accessorKey: "dhFormNumber",
     header: "DH Form",
     cell: ({ row }) => <span className="text-text-med-em">{row.original.dhFormNumber}</span>,
+  },
+  {
+    accessorKey: "drOrdered",
+    header: "Dr. Ordered",
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.drOrdered}</span>,
+  },
+  {
+    accessorKey: "pharmacy",
+    header: "Pharmacy",
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.pharmacy}</span>,
   },
 ];
