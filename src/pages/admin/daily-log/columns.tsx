@@ -133,6 +133,11 @@ export const TableColumns: ColumnDef<DailyLogType>[] = [
     cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.drOrdered}</span>,
   },
   {
+    accessorKey: "orderType",
+    header: "Order Type",
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.orderType}</span>,
+  },
+  {
     accessorKey: "pharmacy",
     header: "Pharmacy",
     cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.pharmacy}</span>,

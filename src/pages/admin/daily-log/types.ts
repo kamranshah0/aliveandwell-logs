@@ -16,6 +16,7 @@ export type DailyLogType = {
   visitType?: string;
   visitServices?: string;
   drOrdered?: string;
+  orderType?: string;
   pharmacy?: string;
   cashVisit?: string;
   copayAmount?: string;

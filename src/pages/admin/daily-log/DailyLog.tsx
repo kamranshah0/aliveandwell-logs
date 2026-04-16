@@ -72,6 +72,7 @@ const dailyLogSchema = z.object({
   visitType: z.string().optional().or(z.literal("")),
   visitServices: z.string().optional().or(z.literal("")),
   drOrdered: z.string().optional().or(z.literal("")),
+  orderType: z.string().optional().or(z.literal("")),
   pharmacy: z.string().optional().or(z.literal("")),
   cashVisit: z.string().optional().or(z.literal("")),
   copayAmount: z.string().optional().or(z.literal("")),
@@ -104,6 +105,7 @@ const getDefaultValues = (userName?: string) => ({
   visitType: "",
   visitServices: "",
   drOrdered: "",
+  orderType: "",
   pharmacy: "",
   cashVisit: "None",
   copayAmount: "",
@@ -318,7 +320,7 @@ const DailyLog: React.FC = () => {
               <div className="overflow-x-auto custom-scroll">
                 <div className="min-w-max pb-4">
                   {/* UNIFIED SPREADSHEET GRID */}
-                  <div className="grid grid-cols-[160px_180px_150px_150px_160px_160px_85px_200px_55px_55px_80px_80px_80px_160px_160px_160px_160px_90px_110px_130px_140px_130px_90px_90px_170px_160px_230px] border-b bg-gray-50/50">
+                  <div className="grid grid-cols-[160px_180px_150px_150px_160px_160px_85px_200px_55px_55px_80px_80px_80px_160px_160px_160px_160px_90px_110px_130px_140px_130px_90px_90px_170px_160px_160px_230px] border-b bg-gray-50/50">
                     {/* ROW 1: HEADERS */}
                     <div className="contents text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">
@@ -395,6 +397,9 @@ const DailyLog: React.FC = () => {
                       </div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center whitespace-nowrap">
                         Dr. Ordered
+                      </div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center whitespace-nowrap">
+                        Order Type
                       </div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">
                         Pharmacy
@@ -936,6 +941,38 @@ const DailyLog: React.FC = () => {
                                   "Refill Prescription",
                                   "No Prescription",
                                   "Prescription on File",
+                                ].map((o) => (
+                                  <SelectItem
+                                    key={o}
+                                    value={o}
+                                    className="text-xs"
+                                  >
+                                    {o}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      </div>
+                      <div className="p-3 border-r border-t">
+                        <Controller
+                          name="orderType"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <SelectTrigger className="h-9 text-xs">
+                                <SelectValue placeholder="Order Type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[
+                                  "Primary Care",
+                                  "Prevention",
+                                  "GLP-1",
+                                  "Weight Loss",
                                 ].map((o) => (
                                   <SelectItem
                                     key={o}
