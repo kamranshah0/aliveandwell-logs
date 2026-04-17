@@ -1,0 +1,49 @@
+name: Deploy App to EC2
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ec2-user
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          echo "App Deployment Started"
+          
+          # App directory
+          cd /var/www/aliveandwell-logs
+          
+          # Git pull
+          git pull origin main
+          
+          # Install with increased memory
+          NODE_OPTIONS=--max-old-space-size=4096 npm install
+          
+          # Build with increased memory
+          NODE_OPTIONS=--max-old-space-size=4096 npm run build
+          
+          # Restart Nginx
+          sudo systemctl restart nginx
+          
+          echo "App Deployment Completed"
+          echo "URL: https://aliveandwell-app.venturequeue.com"
+          
+          # Quick test
+          sleep 2
+          if curl -s -f https://aliveandwell-app.venturequeue.com > /dev/null; then
+            echo "App is live"
+          else
+            echo "App check failed"
+          fi
