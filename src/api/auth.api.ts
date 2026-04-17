@@ -13,6 +13,7 @@ export const verifyMfa = (payload: {
   session: string;
 }) => api.post("/auth/admin/verify-mfa", payload);
 
+
 export const refreshToken = () =>
   api.post("/auth/admin/refresh-token");
 
