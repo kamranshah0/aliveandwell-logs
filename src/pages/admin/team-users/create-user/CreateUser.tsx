@@ -7,7 +7,8 @@ import FormSelect from "@/components/molecules/FormSelect";
 import FieldError from "@/components/molecules/FieldError";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/components/ui/notify";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import createUserSchema, {
   type CreateUserFormValues,
@@ -24,6 +25,7 @@ const CreateUser = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     control,
     setError,
     formState: { errors, isSubmitting },
@@ -38,6 +40,20 @@ const CreateUser = () => {
       designation: "",
     },
   });
+
+  const watchedName = useWatch({ control, name: "name" });
+  const watchedRoleId = useWatch({ control, name: "roleId" });
+
+  useEffect(() => {
+    if (watchedName && watchedRoleId) {
+      const selectedRole = roleOptions.find((r: any) => r.value === watchedRoleId);
+      const roleLabel = selectedRole?.label?.toLowerCase().replace(/\s+/g, "_") || "";
+      const namePart = watchedName.toLowerCase().replace(/\s+/g, "_");
+      
+      const suggestedUsername = `${namePart}_${roleLabel}_${Math.floor(Math.random() * 99) + 1}`;
+      setValue("username", suggestedUsername, { shouldValidate: true });
+    }
+  }, [watchedName, watchedRoleId, roleOptions, setValue]);
 
   const onSubmit = async (values: CreateUserFormValues) => {
     try {
@@ -68,18 +84,6 @@ const CreateUser = () => {
           </div>
 
           <div className="col-span-6">
-            <FormLabel>Username</FormLabel>
-            <FormInput {...register("username")} placeholder="Enter username" />
-            <FieldError error={errors.username?.message} />
-          </div>
-
-          <div className="col-span-6">
-            <FormLabel>Password</FormLabel>
-            <FormInput type="password" {...register("password")} />
-            <FieldError error={errors.password?.message} />
-          </div>
-
-          <div className="col-span-6">
             <FormLabel>Role</FormLabel>
             <Controller
               name="roleId"
@@ -95,6 +99,18 @@ const CreateUser = () => {
               )}
             />
             <FieldError error={errors.roleId?.message} />
+          </div>
+
+          <div className="col-span-6">
+            <FormLabel>Username</FormLabel>
+            <FormInput {...register("username")} placeholder="Enter username" />
+            <FieldError error={errors.username?.message} />
+          </div>
+
+          <div className="col-span-6">
+            <FormLabel>Password</FormLabel>
+            <FormInput type="password" {...register("password")} />
+            <FieldError error={errors.password?.message} />
           </div>
 
           <div className="col-span-12">

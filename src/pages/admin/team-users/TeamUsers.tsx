@@ -19,10 +19,12 @@ import EmptyState from "@/components/empty/EmptyState";
 import { Skeleton } from "@/components/skeletons/skeleton";
 import { deleteAdmin } from "@/api/admin.api";
 import { notify } from "@/components/ui/notify";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { DeleteConfirmModal } from "@/components/modals/DeleteConfirmModal";
+import { AuthContext } from "@/auth/AuthContext";
 
 const TeamUsers = () => {
+  const { user } = useContext(AuthContext)!;
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 const [selectedUser, setSelectedUser] = useState<any | null>(null);
@@ -64,11 +66,13 @@ const confirmDelete = async () => {
         title="Team Users"
         description="Manage staff members and access permissions"
         actionContent={
-          <Link to="/user/create">
-            <Button>
-              <UserPlus2 className="size-5" /> Create User
-            </Button>
-          </Link>
+          user?.username === "super_admin" && (
+            <Link to="/user/create">
+              <Button>
+                <UserPlus2 className="size-5" /> Create User
+              </Button>
+            </Link>
+          )
         }
       />
 

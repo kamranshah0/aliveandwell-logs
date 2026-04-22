@@ -36,6 +36,9 @@ export const handleApiError = (
         if (msg.toLowerCase().includes("email already")) {
           setError("email", { message: msg });
         }
+        if (msg.toLowerCase().includes("username already")) {
+          setError("username", { message: msg });
+        }
       }
     });
   } else {
