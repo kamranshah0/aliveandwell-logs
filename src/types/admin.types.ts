@@ -15,6 +15,7 @@ assignedPatients?: number;
 export type AdminUserCard = {
   id: string;
   name: string;
+  username: string;
   email: string;
   role: string;
   status: "active" | "revoked";
@@ -24,6 +25,7 @@ export type AdminUserCard = {
 
 export type AdminDetails = {
   cognitoUsername: string;
+  username: string;
   email: string;
   enabled: boolean;
   userStatus: string;

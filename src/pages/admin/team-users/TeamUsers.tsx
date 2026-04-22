@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { Eye, Mail, Phone, Trash2, UserPlus2 } from "lucide-react";
+import { Eye, Mail, Phone, Trash2, UserPlus2, User } from "lucide-react";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -37,12 +37,12 @@ const [isDeleting, setIsDeleting] = useState(false);
   });
  
 const confirmDelete = async () => {
-  if (!selectedUser?.email) return;
+  if (!selectedUser?.username) return;
 
   try {
     setIsDeleting(true);
 
-    await deleteAdmin(selectedUser.email);
+    await deleteAdmin(selectedUser.username);
 
     notify.success("User deleted", "Admin removed successfully");
 
@@ -177,8 +177,8 @@ const confirmDelete = async () => {
 
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <Mail className="size-4 text-text-low-em" />
-                    <p className="text-sm text-text-low-em">{user.email}</p>
+                    <User className="size-4 text-text-low-em" />
+                    <p className="text-sm text-text-low-em">{user.username}</p>
                   </div>
 
                   <div className="flex items-center gap-2">

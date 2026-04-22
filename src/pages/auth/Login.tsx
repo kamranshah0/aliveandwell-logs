@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import { CiMail } from "react-icons/ci";
+import { LuUser } from "react-icons/lu";
 import { IoKeyOutline } from "react-icons/io5";
 import { Link, useNavigate } from "react-router-dom";
 import AuthInput from "@/components/shared/auth/AuthInput";
@@ -15,7 +15,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { setAuth } = useContext(AuthContext)!;
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +28,7 @@ const Login = () => {
         // ✅ MFA flow — role check will happen in VerifyOtp
         navigate("/verify-otp", {
           state: {
-            email: data.email,
+            username: data.username,
             session: data.session,
           },
         });
@@ -45,8 +45,8 @@ const Login = () => {
 
         setAuth({
           user: {
-            email: data.email,
-            name: data.email.split("@")[0],
+            username: data.username,
+            name: data.username,
           },
           accessToken: data.accessToken,
           permissions: data.permissions || [],
@@ -58,21 +58,15 @@ const Login = () => {
     onError: (err: any) => {
       setError(
         err?.response?.data?.message ||
-          "Invalid email or password. Please try again."
+          "Invalid username or password. Please try again."
       );
     },
   });
 
   // ✅ VALIDATION
   const validate = () => {
-    if (!email || !password) {
-      setError("Email and password are required");
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address");
+    if (!username || !password) {
+      setError("Username and password are required");
       return false;
     }
 
@@ -90,7 +84,7 @@ const Login = () => {
 
     if (!validate()) return;
 
-    loginUser({ email, password });
+    loginUser({ username, password });
   };
 
   return (
@@ -111,13 +105,13 @@ const Login = () => {
             onSubmit={handleLogin} // ENTER KEY WORKS
           >
             <AuthInput
-              id="email"
-              label="Email Address"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              Icon={CiMail}
+              id="username"
+              label="Username"
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              Icon={LuUser}
             />
 
             <AuthInput

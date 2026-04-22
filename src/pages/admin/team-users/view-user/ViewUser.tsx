@@ -111,9 +111,9 @@ const ViewUser = () => {
                     <UsersRound className="size-6 text-primary" />
                   </div>
                   <div>
-                    <h4 className="text-sm text-text-low-em ">Email</h4>
+                    <h4 className="text-sm text-text-low-em ">Username</h4>
                     <span className="text-base text-text-high-em font-medium">
-                      {adminRes?.email}
+                      {adminRes?.username || adminRes?.cognitoUsername}
                     </span>
                   </div>
                 </div>

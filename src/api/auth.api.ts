@@ -2,12 +2,12 @@
 import { api } from "./axios";
 
 export const login = (payload: {
-  email: string;
+  username: string;
   password: string;
 }) => api.post("/auth/admin/login", payload);
 
 export const verifyMfa = (payload: {
-  email: string;
+  username: string;
   mfaCode: string;
   challengeName: string;
   session: string;
@@ -23,12 +23,12 @@ export const logout = () => api.post("/auth/admin/logout");
 
 
 
-export const forgotPassword = (email: string) => {
-  return api.post("/auth/admin/forgot-password", { email });
+export const forgotPassword = (username: string) => {
+  return api.post("/auth/admin/forgot-password", { username });
 };
 
 export const confirmForgotPassword = (payload: {
-  email: string;
+  username: string;
   confirmationCode: string;
   newPassword: string;
 }) => {

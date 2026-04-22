@@ -32,7 +32,7 @@ const CreateUser = () => {
     mode: "onTouched",
     defaultValues: {
       name: "",
-      email: "",
+      username: "",
       password: "",
       roleId: "",
       designation: "",
@@ -68,9 +68,9 @@ const CreateUser = () => {
           </div>
 
           <div className="col-span-6">
-            <FormLabel>Email</FormLabel>
-            <FormInput type="email" {...register("email")} />
-            <FieldError error={errors.email?.message} />
+            <FormLabel>Username</FormLabel>
+            <FormInput {...register("username")} placeholder="Enter username" />
+            <FieldError error={errors.username?.message} />
           </div>
 
           <div className="col-span-6">

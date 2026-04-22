@@ -13,16 +13,16 @@ const ForgotVerifyOtp = () => {
   const location = useLocation();
   const { setAuth } = useContext(AuthContext)!;
 
-  const { email, session } = location.state || {};
+  const { username, session } = location.state || {};
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!email || !session) {
+    if (!username || !session) {
       navigate("/login", { replace: true });
     }
-  }, [email, session, navigate]);
+  }, [username, session, navigate]);
 
   const { mutate: verifyOtp, isPending } = useMutation({
     mutationFn: verifyMfa,
@@ -31,11 +31,11 @@ const ForgotVerifyOtp = () => {
 
       setAuth({
         user: {
-          email: data.email,
+          username: data.username,
           name: data.name,
         },
         accessToken: data.accessToken,
-        roleId: data.roleId,
+        permissions: data.permissions || [],
       });
       // console.log(data.accessToken);
 
@@ -60,7 +60,7 @@ const ForgotVerifyOtp = () => {
     }
 
     verifyOtp({
-      email,
+      username,
       mfaCode: code,
       session,
       challengeName: "EMAIL_OTP",
@@ -77,7 +77,7 @@ const ForgotVerifyOtp = () => {
               Verify your Identity
             </h1>
             <p className="text-white text-sm">
-              Enter the 6-digit code sent to your email
+              Enter the 6-digit code sent to your registered device/email
             </p>
           </div>
 
@@ -110,7 +110,7 @@ const ForgotVerifyOtp = () => {
             </AuthButton>
 
             <p className="text-center text-white text-sm mt-4">
-              Change email?
+              Change account?
               <Link to="/login" className="text-primary ps-1 font-semibold">
                 Back to Login
               </Link>

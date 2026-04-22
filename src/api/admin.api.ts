@@ -5,7 +5,7 @@ export const getAllAdmins = () => {
 };
 
 export const createAdminUser = (payload: {
-  email: string;
+  username: string;
   password: string;
   name: string;
   roleId: string;
@@ -14,9 +14,9 @@ export const createAdminUser = (payload: {
   return api.post("/auth/admin/create-admin", payload);
 };
   
-export const deleteAdmin = (email: string) => {
+export const deleteAdmin = (username: string) => {
   return api.delete("/auth/admin/delete-admin", {
-    data: { email }, 
+    data: { username }, 
   });
 };
 

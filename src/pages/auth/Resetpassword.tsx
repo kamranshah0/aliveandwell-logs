@@ -16,7 +16,7 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const email = location.state?.email;
+  const username = location.state?.username;
 
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -49,14 +49,14 @@ const ResetPassword = () => {
       return;
     }
 
-    if (!email) {
+    if (!username) {
       notify.error("Session expired. Please restart forgot password flow.");
       navigate("/forgot-password");
       return;
     }
 
     mutation.mutate({
-      email,
+      username,
       confirmationCode: otp,
       newPassword,
     });
@@ -80,7 +80,7 @@ const ResetPassword = () => {
             <AuthInput
               id="otp"
               label="OTP Code"
-              placeholder="Enter OTP from email"
+              placeholder="Enter OTP from device/email"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               Icon={RotateCcwKey}

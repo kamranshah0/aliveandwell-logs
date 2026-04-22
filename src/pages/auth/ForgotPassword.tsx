@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CiMail } from "react-icons/ci";
+import { LuUser } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 
@@ -14,13 +14,13 @@ import { CircleCheck, MessageSquareText, UsersRound } from "lucide-react";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
 
   const mutation = useMutation({
     mutationFn: forgotPassword,
     onSuccess: () => {
-      notify.success("OTP sent to your email");
-      navigate("/forgot-verify-otp", { state: { email } });
+      notify.success("OTP sent to your registered account");
+      navigate("/forgot-verify-otp", { state: { username } });
     },
     onError: (err: any) => {
       notify.error(
@@ -32,12 +32,12 @@ const ForgotPassword = () => {
   const handleClick = (e: any) => {
     e.preventDefault();
 
-    if (!email) {
-      notify.error("Please enter your email");
+    if (!username) {
+      notify.error("Please enter your username");
       return;
     }
 
-    mutation.mutate(email);
+    mutation.mutate(username);
   };
 
   return (
@@ -50,19 +50,19 @@ const ForgotPassword = () => {
               Reset your password
             </h1>
             <p className="text-base leading-6 text-white font-light">
-              Enter your registered email address, and we’ll send you an OTP.
+              Enter your registered username, and we’ll send you an OTP.
             </p>
           </div>
 
           <form className="mt-8 flex flex-col gap-3">
             <AuthInput
-              id="email"
-              label="Email Address"
-              type="email"
-              placeholder="Enter email address to receive OTP"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              Icon={CiMail}
+              id="username"
+              label="Username"
+              type="text"
+              placeholder="Enter username to receive OTP"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              Icon={LuUser}
             />
 
             <AuthButton
