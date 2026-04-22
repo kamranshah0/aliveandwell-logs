@@ -56,11 +56,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const dailyLogSchema = z.object({
-  date: z.string().min(1, "Date is required"),
+  date: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, "Date must be MM/DD/YYYY"),
   representative: z.string().min(1, "Representative is required"),
   firstName: z.string().min(1, "First Name is required"),
   lastName: z.string().min(1, "Last Name is required"),
-  dob: z.string().min(1, "Date of Birth is required"),
+  dob: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, "DOB must be MM/DD/YYYY"),
   doctorNpName: z.string().optional().or(z.literal("")),
   lab: z.string().optional().or(z.literal("")),
   labRep: z.string().optional().or(z.literal("")),
@@ -79,7 +79,9 @@ const dailyLogSchema = z.object({
   copaySource: z.string().optional().or(z.literal("")),
   copayReceiptNumber: z.string().optional().or(z.literal("")),
   marketingSource: z.string().optional().or(z.literal("")),
-  nextApptDate: z.string().optional().or(z.literal("")),
+  nextApptDate: z.string().optional().refine((val) => !val || /^\d{2}\/\d{2}\/\d{4}$/.test(val), {
+    message: "Next Appt Date must be MM/DD/YYYY",
+  }),
   adviseCancellationFee: z.string().optional().or(z.literal("")),
   adviseProgram: z.string().optional().or(z.literal("")),
   dhFormRep: z.string().optional().or(z.literal("")),
@@ -185,7 +187,7 @@ const DailyLog: React.FC = () => {
   } = formMethods;
 
   useEffect(() => {
-    if (user?.user?.name && !editingId && !isAdding) {
+    if (user?.user?.name && !editingId && isAdding) {
       setValue("representative", user.user.name);
     }
   }, [user, setValue, editingId, isAdding]);
@@ -217,6 +219,16 @@ const DailyLog: React.FC = () => {
       updateMutation.mutate({ id: editingId, payload: data });
     } else {
       createMutation.mutate(data);
+    }
+  };
+
+  const onInvalid = (errors: any) => {
+    console.error("Form Validation Errors:", errors);
+    const firstError = Object.values(errors)[0] as any;
+    if (firstError?.message) {
+      toast.error(`Validation Error: ${firstError.message}`);
+    } else {
+      toast.error("Please check all required fields.");
     }
   };
 
@@ -316,11 +328,11 @@ const DailyLog: React.FC = () => {
             </Button>
           </CardHeader>
           <CardContent className="p-0">
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
               <div className="overflow-x-auto custom-scroll">
                 <div className="min-w-max pb-4">
                   {/* UNIFIED SPREADSHEET GRID */}
-                  <div className="grid grid-cols-[160px_180px_150px_150px_160px_160px_85px_200px_55px_55px_80px_80px_80px_160px_160px_160px_160px_90px_110px_130px_140px_130px_90px_90px_170px_160px_160px_230px] border-b bg-gray-50/50">
+                  <div className="grid grid-cols-[160px_180px_150px_150px_160px_160px_85px_200px_55px_55px_80px_80px_80px_160px_160px_160px_160px_160px_110px_130px_140px_130px_170px_130px_170px_160px_160px_230px] border-b bg-gray-50/50">
                     {/* ROW 1: HEADERS */}
                     <div className="contents text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">
@@ -413,51 +425,11 @@ const DailyLog: React.FC = () => {
                     <div className="contents bg-white">
                       {/* Entry Date */}
                       <div className="p-3 border-r border-t">
-                        <Controller
-                          name="date"
-                          control={control}
-                          render={({ field }) => (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full h-9 justify-center text-center bg-white border-gray-200 text-xs font-semibold",
-                                    !field.value && "text-gray-400",
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                                  {field.value ||
-                                    format(new Date(), "MM/dd/yyyy")}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="w-auto p-0"
-                                align="start"
-                              >
-                                <Calendar
-                                  mode="single"
-                                  selected={
-                                    field.value
-                                      ? parse(
-                                          field.value,
-                                          "MM/dd/yyyy",
-                                          new Date(),
-                                        )
-                                      : undefined
-                                  }
-                                  onSelect={(date) =>
-                                    field.onChange(
-                                      date
-                                        ? format(date, "MM/dd/yyyy")
-                                        : format(new Date(), "MM/dd/yyyy"),
-                                    )
-                                  }
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          )}
+                        <Input
+                          {...register("date")}
+                          readOnly
+                          className="h-9 text-xs font-semibold bg-gray-50 border-gray-200 text-center cursor-not-allowed"
+                          placeholder="mm/dd/yyyy"
                         />
                       </div>
                       {/* Representative (Read-Only) */}
@@ -497,48 +469,11 @@ const DailyLog: React.FC = () => {
                       </div>
                       {/* DOB */}
                       <div className="p-3 border-r border-t">
-                        <Controller
-                          name="dob"
-                          control={control}
-                          render={({ field }) => (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full h-9 justify-start text-left bg-white border-gray-200 text-xs",
-                                    !field.value && "text-gray-400",
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                                  {field.value || "DOB"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="w-auto p-0"
-                                align="start"
-                              >
-                                <Calendar
-                                  mode="single"
-                                  selected={
-                                    field.value
-                                      ? parse(
-                                          field.value,
-                                          "MM/dd/yyyy",
-                                          new Date(),
-                                        )
-                                      : undefined
-                                  }
-                                  onSelect={(date) =>
-                                    field.onChange(
-                                      date ? format(date, "MM/dd/yyyy") : "",
-                                    )
-                                  }
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          )}
+                        <Input
+                          {...register("dob")}
+                          placeholder="mm/dd/yyyy"
+                          className="h-9 text-xs text-center"
+                          maxLength={10}
                         />
                       </div>
                       {/* Doctor/NP */}
@@ -684,14 +619,18 @@ const DailyLog: React.FC = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 {[
-                                  "New Patient / Primary Care",
-                                  "New Patient / Preventative",
-                                  "Preventative",
-                                  "Primary Care",
-                                  "Results",
-                                  "Follow Up",
+                                  "New Patient/Primary Care",
+                                  "New Patient/Preventative",
+                                  "Follow Up/Primary Care",
+                                  "Follow Up/Preventative",
+                                  "Lab Results Reading",
                                   "Disenroll",
-                                  "Disregarded/Left",
+                                  "Disregard/Left",
+                                  "Telemed Visit",
+                                  "Telemed Results",
+                                  "None",
+                                  "One Time Testing",
+                                  "Need Insurance",
                                 ].map((v) => (
                                   <SelectItem
                                     key={v}
@@ -769,6 +708,7 @@ const DailyLog: React.FC = () => {
                                 <SelectItem value="Credit Card">
                                   Credit Card
                                 </SelectItem>
+                                <SelectItem value="None">None</SelectItem>
                               </SelectContent>
                             </Select>
                           )}
@@ -823,45 +763,11 @@ const DailyLog: React.FC = () => {
                       </div>
 
                       <div className="p-3 border-r border-t">
-                        <Controller
-                          name="nextApptDate"
-                          control={control}
-                          render={({ field }) => (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className="w-full h-9 justify-start text-left bg-white border-gray-200 text-xs"
-                                >
-                                  <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                                  {field.value || "Select"}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className="w-auto p-0"
-                                align="start"
-                              >
-                                <Calendar
-                                  mode="single"
-                                  selected={
-                                    field.value
-                                      ? parse(
-                                          field.value,
-                                          "MM/dd/yyyy",
-                                          new Date(),
-                                        )
-                                      : undefined
-                                  }
-                                  onSelect={(date) =>
-                                    field.onChange(
-                                      date ? format(date, "MM/dd/yyyy") : "",
-                                    )
-                                  }
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          )}
+                        <Input
+                          {...register("nextApptDate")}
+                          placeholder="mm/dd/yyyy"
+                          className="h-9 text-xs text-center"
+                          maxLength={10}
                         />
                       </div>
 
@@ -973,6 +879,7 @@ const DailyLog: React.FC = () => {
                                   "Prevention",
                                   "GLP-1",
                                   "Weight Loss",
+                                  "None",
                                 ].map((o) => (
                                   <SelectItem
                                     key={o}
