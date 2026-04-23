@@ -13,6 +13,11 @@ export const TableColumns: ColumnDef<DailyLogType>[] = [
     cell: ({ row }) => <span className="whitespace-nowrap font-medium text-text-high-em">{row.original.date}</span>,
   },
   {
+    accessorKey: "location",
+    header: "Location",
+    cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em">{row.original.location}</span>,
+  },
+  {
     accessorKey: "representative",
     header: "Rep",
     cell: ({ row }) => <span className="whitespace-nowrap text-text-med-em font-bold">{row.original.representative}</span>,

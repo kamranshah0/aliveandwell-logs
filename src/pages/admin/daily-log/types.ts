@@ -32,6 +32,7 @@ export type DailyLogType = {
   dhFormRep?: string;
   dhFormNumber?: string;
   dhFormElectronic?: string;
+  location?: string;
   createdAt: string;
   updatedAt: string;
 };

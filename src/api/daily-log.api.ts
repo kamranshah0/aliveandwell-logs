@@ -22,3 +22,5 @@ export const updateDailyLog = (id: string, payload: any) => api.patch(`/daily-lo
 
 export const deleteDailyLog = (id: string) => api.delete(`/daily-log/${id}`);
 export const getDailyLogStats = () => api.get("/daily-log/stats");
+export const getAdminDailyLogReports = (params?: { startDate?: string; endDate?: string }) => 
+  api.get("/daily-log/admin-reports", { params });

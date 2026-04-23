@@ -36,6 +36,7 @@ const ICON_MAP: Record<string, ReactNode> = {
   "/roles": <ShieldUser className="size-5" />,
   "/settings": <Settings className="size-5" />,
   "/daily-log": <FileText className="size-5" />,
+  "/log-reports": <FileText className="size-5" />,
 };
 
 const mapNavItems = (items: NavItem[]): any[] => {

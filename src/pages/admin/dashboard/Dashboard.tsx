@@ -11,7 +11,13 @@ import { getDailyLogStats } from "@/api/daily-log.api";
 import DashboardStatsCardSkeleton from "@/components/skeletons/DashboardStatsCardSkeleton";
 import PharmacyCardSkeleton from "@/components/skeletons/PharmacyCardSkeleton";
 
+import { usePermissions } from "@/auth/usePermissions";
+import AdminDashboard from "./AdminDashboard";
+
 const Dashboard = () => {
+  const { can } = usePermissions();
+  const isAdmin = can("admin.view");
+
   const { data: dailyLogStats, isLoading: isDailyLogStatsLoading } = useQuery({
     queryKey: ["dailyLogStats"],
     queryFn: async () => {
@@ -19,7 +25,12 @@ const Dashboard = () => {
       return res.data.data;
     },
     staleTime: 5 * 60 * 1000,
+    enabled: !isAdmin, // Only fetch if not an admin to save unnecessary requests
   });
+
+  if (isAdmin) {
+    return <AdminDashboard />;
+  }
 
   return (
     <MainWrapper className="flex flex-col gap-8">

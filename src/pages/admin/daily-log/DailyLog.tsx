@@ -58,6 +58,7 @@ import {
 const dailyLogSchema = z.object({
   date: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, "Date must be MM/DD/YYYY"),
   representative: z.string().min(1, "Representative is required"),
+  location: z.string().optional().or(z.literal("")),
   firstName: z.string().min(1, "First Name is required"),
   lastName: z.string().min(1, "Last Name is required"),
   dob: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, "DOB must be MM/DD/YYYY"),
@@ -90,9 +91,10 @@ const dailyLogSchema = z.object({
 
 type DailyLogFormData = z.infer<typeof dailyLogSchema>;
 
-const getDefaultValues = (userName?: string) => ({
+const getDefaultValues = (userName?: string, branchName?: string) => ({
   date: format(new Date(), "MM/dd/yyyy"),
   representative: userName || "Receptionist",
+  location: branchName || "",
   firstName: "",
   lastName: "",
   dob: "",
@@ -174,7 +176,10 @@ const DailyLog: React.FC = () => {
 
   const formMethods = useForm<DailyLogFormData>({
     resolver: zodResolver(dailyLogSchema),
-    defaultValues: getDefaultValues(user?.user?.name),
+    defaultValues: getDefaultValues(
+      user?.user?.name || user?.name,
+      user?.user?.branchName || user?.branchName
+    ),
   });
 
   const {
@@ -187,15 +192,21 @@ const DailyLog: React.FC = () => {
   } = formMethods;
 
   useEffect(() => {
-    if (user?.user?.name && !editingId && isAdding) {
-      setValue("representative", user.user.name);
+    if (!editingId && isAdding) {
+      const userName = user?.user?.name || user?.name;
+      const branchName = user?.user?.branchName || user?.branchName;
+      if (userName) setValue("representative", userName);
+      if (branchName) setValue("location", branchName);
     }
   }, [user, setValue, editingId, isAdding]);
 
   const handleCloseForm = () => {
     setIsAdding(false);
     setEditingId(null);
-    reset(getDefaultValues(user?.user?.name));
+    reset(getDefaultValues(
+      user?.user?.name || user?.name,
+      user?.user?.branchName || user?.branchName
+    ));
   };
 
   const onEdit = (log: DailyLogType) => {
@@ -332,11 +343,14 @@ const DailyLog: React.FC = () => {
               <div className="overflow-x-auto custom-scroll">
                 <div className="min-w-max pb-4">
                   {/* UNIFIED SPREADSHEET GRID */}
-                  <div className="grid grid-cols-[160px_180px_150px_150px_160px_160px_85px_200px_55px_55px_80px_80px_80px_160px_160px_160px_160px_160px_110px_130px_140px_130px_170px_130px_170px_160px_160px_230px] border-b bg-gray-50/50">
+                  <div className="grid grid-cols-[160px_180px_180px_150px_150px_160px_160px_85px_200px_55px_55px_80px_80px_80px_160px_160px_160px_160px_160px_110px_130px_140px_130px_170px_130px_170px_160px_160px_230px] border-b bg-gray-50/50">
                     {/* ROW 1: HEADERS */}
                     <div className="contents text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">
                         Entry Date
+                      </div>
+                      <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">
+                        Location
                       </div>
                       <div className="py-3 px-4 border-r border-gray-100 flex items-center justify-center">
                         Rep Name
@@ -432,6 +446,15 @@ const DailyLog: React.FC = () => {
                           placeholder="mm/dd/yyyy"
                         />
                       </div>
+                      {/* Location (Read-Only) */}
+                      <div className="p-3 border-r border-t">
+                        <Input
+                          {...register("location")}
+                          className="h-9 text-xs bg-gray-50 font-bold"
+                          disabled
+                          readOnly
+                        />
+                      </div>
                       {/* Representative (Read-Only) */}
                       <div className="p-3 border-r border-t">
                         <Input
@@ -478,10 +501,25 @@ const DailyLog: React.FC = () => {
                       </div>
                       {/* Doctor/NP */}
                       <div className="p-3 border-r border-t">
-                        <Input
-                          {...register("doctorNpName")}
-                          className="h-9 text-xs"
-                          placeholder="Provider"
+                        <Controller
+                          name="doctorNpName"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <SelectTrigger className="h-9 text-xs">
+                                <SelectValue placeholder="Select Doctor" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Kimo Quincy Thompson">Kimo Quincy Thompson</SelectItem>
+                                <SelectItem value="Juan Carranza">Juan Carranza</SelectItem>
+                                <SelectItem value="Rose Charles">Rose Charles</SelectItem>
+                                <SelectItem value="Susette Diaz">Susette Diaz</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
                         />
                       </div>
                       {/* Lab Dropdown */}

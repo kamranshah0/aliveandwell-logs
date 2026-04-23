@@ -26,6 +26,7 @@ import Register from "@/pages/auth/Register";
 import DailyLog from "@/pages/admin/daily-log/DailyLog";
 import SettingMain from "@/pages/admin/settings/SettingMain";
 import ReportDashboard from "@/pages/admin/reports/ReportDashboard";
+import LogReportDashboard from "@/pages/admin/daily-log-reports/LogReportDashboard";
 import RefillMain from "@/pages/admin/refills/RefillMain";
 import TeamUsers from "@/pages/admin/team-users/TeamUsers";
 import ViewUser from "@/pages/admin/team-users/view-user/ViewUser";
@@ -237,6 +238,15 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute permission="reports.read">
               <ReportDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="log-reports"
+          element={
+            <ProtectedRoute permission="admin.view">
+              <LogReportDashboard />
             </ProtectedRoute>
           }
         />
