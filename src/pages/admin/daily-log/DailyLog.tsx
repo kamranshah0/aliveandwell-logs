@@ -140,6 +140,7 @@ const DailyLog: React.FC = () => {
     mutationFn: createDailyLog,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
       toast.success("Daily log entry created successfully");
       handleCloseForm();
     },
@@ -155,6 +156,7 @@ const DailyLog: React.FC = () => {
       updateDailyLog(data.id, data.payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
       toast.success("Daily log entry updated successfully");
       handleCloseForm();
     },
@@ -169,6 +171,7 @@ const DailyLog: React.FC = () => {
     mutationFn: deleteDailyLog,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
       toast.success("Log entry deleted successfully");
     },
     onError: () => toast.error("Failed to delete log entry"),

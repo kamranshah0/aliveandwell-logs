@@ -11,7 +11,7 @@ import PharmacyCardSkeleton from "@/components/skeletons/PharmacyCardSkeleton";
 import DailyActivityChart from "./DailyActivityChart"; // Reuse chart for monthly trend
 
 const AdminDashboard = () => {
-  const { data: adminStats, isLoading } = useQuery({
+  const { data: adminStats, isLoading, isFetching } = useQuery({
     queryKey: ["adminDailyLogReports"],
     queryFn: async () => {
       const res = await getAdminDailyLogReports();
@@ -29,7 +29,7 @@ const AdminDashboard = () => {
 
       {/* TOP METRICS */}
       <div className="space-y-4">
-        {isLoading ? (
+        {(isLoading || isFetching) ? (
           <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <DashboardStatsCardSkeleton key={i} />
@@ -67,7 +67,7 @@ const AdminDashboard = () => {
 
       {/* MONTHLY TREND CHART */}
       <div className="grid grid-cols-1">
-        {isLoading ? (
+        {(isLoading || isFetching) ? (
           <div className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
         ) : (
           <DailyActivityChart 
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
         {/* Entries by Branch */}
         <div className="flex flex-col gap-4">
           <TitelMd>Entries by Branch</TitelMd>
-          {isLoading ? (
+          {(isLoading || isFetching) ? (
             <div className="grid grid-cols-1 gap-4">
               {Array.from({ length: 3 }).map((_, i) => <PharmacyCardSkeleton key={i} />)}
             </div>
@@ -111,7 +111,7 @@ const AdminDashboard = () => {
 
         {/* Entries by Day (Recent) */}
         <div className="flex flex-col gap-4">
-          {isLoading ? (
+          {(isLoading || isFetching) ? (
             <div className="h-[250px] bg-gray-100 animate-pulse rounded-xl" />
           ) : (
             <DailyActivityChart 

@@ -21,6 +21,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
     onSuccess: (res) => {
       notify.success("File processed successfully");
       queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
       setSummary(res.data?.data?.summary);
       setFile(null);
     },
