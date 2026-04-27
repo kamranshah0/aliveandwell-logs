@@ -300,7 +300,7 @@ const DailyLog: React.FC = () => {
   ];
 
   return (
-    <MainWrapper className="flex flex-col gap-8 overflow-hidden">
+    <MainWrapper className="flex flex-col gap-8 overflow-hidden max-w-full min-w-0">
       <MainHeader
         title="Daily Log"
         description="Manage and track daily receptionist activities and patient check-ins."
@@ -325,7 +325,7 @@ const DailyLog: React.FC = () => {
       />
 
       {isAdding && (
-        <Card className="border-primary/20 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300 rounded-xl overflow-hidden mb-8 bg-white">
+        <Card className="w-full min-w-0 border-primary/20 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300 rounded-xl overflow-hidden mb-8 bg-white">
           <CardHeader className="bg-primary/5 border-b py-3 px-4 flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-bold text-primary uppercase tracking-wider">
               {editingId
@@ -343,7 +343,7 @@ const DailyLog: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0">
             <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
-              <div className="overflow-x-auto custom-scroll">
+              <div className="w-full min-w-0 overflow-x-auto custom-scroll">
                 <div className="min-w-max pb-4">
                   {/* UNIFIED SPREADSHEET GRID */}
                   <div className="grid grid-cols-[160px_180px_180px_150px_150px_160px_160px_85px_200px_55px_55px_80px_80px_80px_160px_160px_160px_160px_160px_110px_130px_140px_130px_170px_130px_170px_160px_160px_230px] border-b bg-gray-50/50">
