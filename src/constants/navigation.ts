@@ -25,4 +25,9 @@ export const NAV_ITEMS: NavItem[] = [
     path: "/log-reports",
     permission: "admin.view",
   },
+  {
+    name: "Form Settings",
+    path: "/daily-log-config",
+    permission: "admin.view",
+  },
 ];

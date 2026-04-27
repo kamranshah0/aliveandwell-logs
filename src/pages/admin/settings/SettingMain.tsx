@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/auth/useAuth";
 import { useEffect } from "react";
+import DailyLogFieldsTab from "./DailyLogFieldsTab";
 import {
   getGeneralSettings,
   updateGeneralSettings,

@@ -1,16 +1,13 @@
 import MainWrapper from "@/components/molecules/MainWrapper";
 import MainHeader from "@/components/molecules/MainHeader";
-import TitelMd from "@/components/molecules/TiteMd";
-import DashbaordDetailCard from "@/components/molecules/DashbaordDetailCard";
 import { useQuery } from "@tanstack/react-query";
-import { getAdminDailyLogReports } from "@/api/daily-log.api";
-import { Stethoscope, Pill, Syringe, ClipboardPlus, CalendarIcon } from "lucide-react";
+import { getAdminDailyLogReports, getDailyLogFields } from "@/api/daily-log.api";
+import { ClipboardPlus, CalendarIcon, BarChart3 } from "lucide-react";
 import ReportBarChart from "./ReportBarChart";
 import Papa from "papaparse";
-import { notify } from "@/components/ui/notify";
+import { toast } from "sonner";
 import { useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { TextField } from "@mui/material";
 import { format } from "date-fns";
 
 const LogReportDashboard = () => {
@@ -27,50 +24,45 @@ const LogReportDashboard = () => {
       return res.data.data;
     },
   });
+
+  const { data: fieldsRes } = useQuery({
+    queryKey: ["dailyLogFields"],
+    queryFn: getDailyLogFields,
+  });
+  const fields = fieldsRes?.data?.data || [];
+
   const handleSingleExport = (title: string, categoryKey: string) => {
     if (!adminStats || !adminStats.rawLogs || !adminStats.rawLogs.length) {
-      notify.error("No data to export");
+      toast.error("No data to export");
       return;
     }
 
     try {
-      const relevantLogs = adminStats.rawLogs.filter((log: any) => !!log[categoryKey]);
+      const relevantLogs = adminStats.rawLogs.filter((log: any) => {
+        const val = log[categoryKey] ?? log.additionalData?.[categoryKey];
+        return !!val;
+      });
       
       if (!relevantLogs.length) {
-        notify.error("No data available for this category");
+        toast.error("No data available for this category");
         return;
       }
 
-      const exportData = relevantLogs.map((log: any) => ({
-        "Date": log.date || "",
-        "Location": log.branch?.name || "Unknown",
-        "Rep": log.representative || "",
-        "Last Name": log.lastName || "",
-        "First Name": log.firstName || "",
-        "DOB": log.dob || "",
-        "Doctor/NP": log.doctorNpName || "",
-        "Lab": log.lab || "",
-        "Lab Rep": log.labRep || "",
-        "New": log.newPatient ? "YES" : "NO",
-        "Enrolled": log.enrolled ? "YES" : "NO",
-        "Addr.": log.proofOfAddress || "",
-        "Elig.": log.eligibilityCheck || "",
-        "Ins.": log.insuranceCheck || "",
-        "Visit Type": log.visitType || "",
-        "Services": log.visitServices || "",
-        "Copay": log.copayAmount || "",
-        "Source": log.copaySource || "",
-        "Receipt": log.copayReceiptNumber || "",
-        "Marketing": log.marketingSource || "",
-        "Next Appt": log.nextApptDate || "",
-        "Can. Fee": log.adviseCancellationFee || "",
-        "Prog.": log.adviseProgram || "",
-        "DH Rep": log.dhFormRep || "",
-        "DH Form": log.dhFormNumber || "",
-        "Dr. Ordered": log.drOrdered || "",
-        "Order Type": log.orderType || "",
-        "Pharmacy": log.pharmacy || ""
-      }));
+      const exportData = relevantLogs.map((log: any) => {
+        const row: any = {};
+        
+        fields.forEach((f: any) => {
+          let val = log[f.name] ?? log.additionalData?.[f.name];
+          
+          if (f.type === "checkbox") {
+            val = val ? "YES" : "NO";
+          }
+          
+          row[f.label] = val ?? "";
+        });
+
+        return row;
+      });
 
       const csv = Papa.unparse(exportData);
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -82,11 +74,13 @@ const LogReportDashboard = () => {
       link.click();
       document.body.removeChild(link);
       
-      notify.success(`${title} report exported successfully`);
+      toast.success(`${title} report exported successfully`);
     } catch (error) {
-      notify.error(`Failed to export ${title} report`);
+      toast.error(`Failed to export ${title} report`);
     }
   };
+
+  const dynamicReports = adminStats?.dynamicReports || [];
 
   return (
     <MainWrapper className="flex flex-col gap-8">
@@ -117,71 +111,34 @@ const LogReportDashboard = () => {
         </div>
       </div>
 
-      {/* VISIT TYPE & VISIT SERVICES */}
+      {/* DYNAMIC REPORTS GRID */}
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Visit Type */}
-        <div className="flex flex-col gap-4">
-          {isLoading ? (
-            <div className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
-          ) : (
-            <ReportBarChart
-              data={adminStats?.entriesByVisitType || []}
-              title="Entries by Visit Type"
-              icon={<ClipboardPlus className="size-6 text-blue-600" />}
-              color="#2563EB" // blue-600
-              onExport={() => handleSingleExport("Visit Type", "visitType")}
-            />
-          )}
-        </div>
-
-        {/* Visit Services */}
-        <div className="flex flex-col gap-4">
-          {isLoading ? (
-            <div className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
-          ) : (
-            <ReportBarChart
-              data={adminStats?.entriesByVisitServices || []}
-              title="Entries by Visit Services"
-              icon={<Syringe className="size-6 text-purple-600" />}
-              color="#9333EA" // purple-600
-              onExport={() => handleSingleExport("Visit Services", "visitServices")}
-            />
-          )}
-        </div>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
+          ))
+        ) : (
+          dynamicReports.map((report: any, index: number) => (
+            <div key={report.name} className="flex flex-col gap-4">
+              <ReportBarChart
+                data={report.data}
+                title={`Entries by ${report.label}`}
+                icon={<BarChart3 className={`size-6 ${index % 2 === 0 ? 'text-primary' : 'text-purple-600'}`} />}
+                color={index % 2 === 0 ? "#2563EB" : "#9333EA"}
+                onExport={() => handleSingleExport(report.label, report.name)}
+              />
+            </div>
+          ))
+        )}
       </div>
 
-      {/* DR ORDERED & PHARMACY */}
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Dr Ordered */}
-        <div className="flex flex-col gap-4">
-          {isLoading ? (
-            <div className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
-          ) : (
-            <ReportBarChart
-              data={adminStats?.entriesByDrOrdered || []}
-              title="Entries by Dr. Ordered"
-              icon={<Stethoscope className="size-6 text-green-600" />}
-              color="#16A34A" // green-600
-              onExport={() => handleSingleExport("Dr Ordered", "drOrdered")}
-            />
-          )}
+      {dynamicReports.length === 0 && !isLoading && (
+        <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+          <BarChart3 className="size-12 text-gray-300 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-600">No Dynamic Reports Found</h3>
+          <p className="text-sm text-gray-400">Add fields and enable "Show in Report" in Settings to see charts here.</p>
         </div>
-
-        {/* Pharmacy */}
-        <div className="flex flex-col gap-4">
-          {isLoading ? (
-            <div className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
-          ) : (
-            <ReportBarChart
-              data={adminStats?.entriesByPharmacy || []}
-              title="Entries by Pharmacy"
-              icon={<Pill className="size-6 text-orange-600" />}
-              color="#EA580C" // orange-600
-              onExport={() => handleSingleExport("Pharmacy", "pharmacy")}
-            />
-          )}
-        </div>
-      </div>
+      )}
 
     </MainWrapper>
   );

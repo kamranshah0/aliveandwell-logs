@@ -18,6 +18,7 @@ import { LuBuilding2 } from "react-icons/lu";
 import { GiMedicines } from "react-icons/gi";
 import { PermissionGate } from "@/auth/PermissionGate";
 import { usePermissions } from "@/auth/usePermissions";
+import { useAuth } from "@/auth/useAuth";
 import { NAV_ITEMS, type NavItem } from "@/constants/navigation";
 import { useState, useEffect, type ReactNode } from "react";
 
@@ -37,6 +38,7 @@ const ICON_MAP: Record<string, ReactNode> = {
   "/settings": <Settings className="size-5" />,
   "/daily-log": <FileText className="size-5" />,
   "/log-reports": <FileText className="size-5" />,
+  "/daily-log-config": <Settings className="size-5" />,
 };
 
 const mapNavItems = (items: NavItem[]): any[] => {
@@ -58,6 +60,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
   const pathname = useLocation().pathname;
   const { theme } = useTheme();
   const { can } = usePermissions();
+  const { user } = useAuth();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -70,6 +73,12 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
   }, [pathname]);
 
   const hasPermission = (item: any): boolean => {
+    // Specific restriction for Form Settings
+    if (item.path === "/daily-log-config") {
+      const userEmail = user?.user?.email || user?.email;
+      if (userEmail !== "jamshedlinkedin@gmail.com") return false;
+    }
+
     if (!item.permission || can(item.permission)) return true;
     if (item.children && item.children.length > 0) {
       return item.children.some((child: any) => hasPermission(child));

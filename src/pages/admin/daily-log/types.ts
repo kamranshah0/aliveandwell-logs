@@ -35,4 +35,6 @@ export type DailyLogType = {
   location?: string;
   createdAt: string;
   updatedAt: string;
+  additionalData?: Record<string, any>;
+  [key: string]: any;
 };
