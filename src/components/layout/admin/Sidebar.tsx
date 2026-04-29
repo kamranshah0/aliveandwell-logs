@@ -73,10 +73,12 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
   }, [pathname]);
 
   const hasPermission = (item: any): boolean => {
-    // Specific restriction for Form Settings
+    const userEmail = user?.user?.email || user?.email;
+    const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
+
+    // Specific restriction for Form Settings (ONLY Sagar)
     if (item.path === "/daily-log-config") {
-      const userEmail = user?.user?.email || user?.email;
-      if (userEmail !== "jamshedlinkedin@gmail.com") return false;
+      if (username !== "sagar") return false;
     }
 
     if (!item.permission || can(item.permission)) return true;

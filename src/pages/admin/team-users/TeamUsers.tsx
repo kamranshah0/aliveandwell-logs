@@ -66,7 +66,11 @@ const confirmDelete = async () => {
         title="Team Users"
         description="Manage staff members and access permissions"
         actionContent={
-          user?.username === "super_admin" && (
+          (user?.username === "super_admin" || 
+           user?.username === "sagar" || 
+           user?.id === "sagar" || 
+           user?.user?.username === "sagar" || 
+           user?.user?.id === "sagar") && (
             <Link to="/user/create">
               <Button>
                 <UserPlus2 className="size-5" /> Create User

@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertTriangle, Download } from "lucide-react";
+import * as XLSX from "xlsx";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { bulkImportDailyLogsCsv, getDailyLogFields } from "@/api/daily-log.api";
 import { notify } from "@/components/ui/notify";
@@ -53,6 +60,29 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
     document.body.removeChild(a);
   };
 
+  const handleDownloadSampleExcel = () => {
+    if (!fields || fields.length === 0) {
+      toast.error("No fields configured yet");
+      return;
+    }
+
+    const sampleRow: any = {};
+    fields.forEach((f: any) => {
+      let val = "Sample Data";
+      if (f.type === "date") val = format(new Date(), "MM/dd/yyyy");
+      if (f.type === "checkbox") val = "no";
+      if (f.type === "select") val = f.options?.[0] || "None";
+      if (f.type === "number") val = "0";
+      sampleRow[f.label] = val;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet([sampleRow]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Log Template");
+    
+    XLSX.writeFile(workbook, `daily_log_template_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+  };
+
   const mutation = useMutation({
     mutationFn: bulkImportDailyLogsCsv,
     onSuccess: (res) => {
@@ -69,7 +99,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
 
   const handleUpload = () => {
     if (!file) {
-      notify.error("Please select a CSV file");
+      notify.error("Please select a file");
       return;
     }
     mutation.mutate(file);
@@ -87,7 +117,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-primary">
             <Upload className="size-5" />
-            Upload Daily Logs CSV
+            Upload Daily Logs
           </DialogTitle>
         </DialogHeader>
 
@@ -106,7 +136,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
               <input
                 id="csv-upload"
                 type="file"
-                accept=".csv"
+                accept=".csv, .xlsx, .xls"
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files?.[0]) {
@@ -120,13 +150,24 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
               <p className="text-xs text-text-low-em italic">
                 * Please use the sample format for importing logs.
               </p>
-              <Button 
-                variant="link" 
-                className="text-primary h-auto p-0 w-fit font-bold"
-                onClick={handleDownloadSample}
-              >
-                Download Sample CSV Template
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="link" 
+                    className="text-primary h-auto p-0 w-fit font-bold"
+                  >
+                    <Download className="size-4 mr-1" /> Download Sample Template
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={handleDownloadSample}>
+                    CSV Format
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadSampleExcel}>
+                    Excel (XLSX) Format
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div className="flex justify-end gap-2">

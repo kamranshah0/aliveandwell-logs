@@ -30,8 +30,10 @@ import {
   updateDailyLog,
   deleteDailyLog,
   exportDailyLogsCsv,
+  exportDailyLogsExcel,
   getDailyLogFields,
 } from "@/api/daily-log.api";
+import * as XLSX from "xlsx";
 import { generateColumns } from "./columns";
 import { toast } from "sonner";
 import { format, parse } from "date-fns";
@@ -110,6 +112,32 @@ const DailyLog: React.FC = () => {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+  };
+
+  const handleDownloadSampleExcel = async () => {
+    const { data: latestFieldsRes } = await refetchFields();
+    const latestFields = latestFieldsRes?.data?.data || fields;
+
+    if (!latestFields || latestFields.length === 0) {
+      toast.error("No fields configured yet");
+      return;
+    }
+
+    const sampleRow: any = {};
+    latestFields.forEach((f: any) => {
+      let val = "Sample Data";
+      if (f.type === "date") val = format(new Date(), "MM/dd/yyyy");
+      if (f.type === "checkbox") val = "no";
+      if (f.type === "select") val = f.options?.[0] || "None";
+      if (f.type === "number") val = "0";
+      sampleRow[f.label] = val;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet([sampleRow]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Log Template");
+    
+    XLSX.writeFile(workbook, `daily_log_template_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   };
 
   // Generate Dynamic Schema
@@ -307,6 +335,33 @@ const DailyLog: React.FC = () => {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const res = await exportDailyLogsExcel();
+      const { buffer, fileName } = res.data.data;
+      
+      const byteCharacters = atob(buffer);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success("Log exported successfully");
+    } catch (err) {
+      toast.error("Failed to export logs");
+    }
+  };
+
   const columnsWithActions = React.useMemo(() => [
     ...generateColumns(fields),
     {
@@ -348,19 +403,42 @@ const DailyLog: React.FC = () => {
         description="Manage and track daily receptionist activities and patient check-ins."
         actionContent={
           <div className="flex gap-2 max-sm:flex-col">
-            <Button
-              variant="outline"
-              className="border-primary/20 text-primary hover:bg-primary/5"
-              onClick={handleDownloadSample}
-            >
-              <Download className="size-4 mr-2" /> Sample CSV
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/5">
+                  <Download className="size-4 mr-2" /> Sample File
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={handleDownloadSample}>
+                  CSV Format
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadSampleExcel}>
+                  Excel (XLSX) Format
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button variant="outline" onClick={() => setIsImportOpen(true)}>
               <Upload className="size-5" /> Import Logs
             </Button>
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="size-5" /> Export Logs
-            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Download className="size-5" /> Export Logs
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={handleExport}>
+                  CSV Format
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportExcel}>
+                  Excel (XLSX) Format
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {!isAdding && (
               <Button
                 onClick={() => setIsAdding(true)}

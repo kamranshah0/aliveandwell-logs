@@ -67,6 +67,7 @@ function RootRedirect() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   const safePermissions = permissions || [];
+  const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
 
   // Special handle for Dashboard (which is on path "/")
   if (safePermissions.includes("admin.view")) return <ShipmentDashboard />;
@@ -258,8 +259,8 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute permission="admin.view">
               {(() => {
-                const userEmail = user?.user?.email || user?.email;
-                if (userEmail === "jamshedlinkedin@gmail.com") {
+                const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
+                if (username === "sagar") {
                   return <DailyLogFields />;
                 }
                 return <Navigate to="/403" replace />;

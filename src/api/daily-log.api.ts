@@ -17,6 +17,7 @@ export const bulkImportDailyLogsCsv = async (file: File) => {
 };
 
 export const exportDailyLogsCsv = () => api.get("/daily-log/export/csv");
+export const exportDailyLogsExcel = () => api.get("/daily-log/export/excel");
 
 export const updateDailyLog = (id: string, payload: any) => api.patch(`/daily-log/${id}`, payload);
 
