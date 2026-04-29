@@ -19,7 +19,9 @@ type DailyTrend = {
 };
 
 type DailyActivityChartProps = {
-  data: DailyTrend[];
+  data: any[];
+  title?: string;
+  description?: string;
 };
 
 const CustomTooltip = ({
@@ -47,7 +49,11 @@ const CustomTooltip = ({
   return null;
 };
 
-const DailyActivityChart: React.FC<DailyActivityChartProps> = ({ data }) => {
+const DailyActivityChart: React.FC<DailyActivityChartProps> = ({ 
+  data, 
+  title = "Daily Log Activity", 
+  description = "Entry trends for the last 7 days" 
+}) => {
   const hasData = data && data.length > 0;
 
   return (
@@ -58,9 +64,9 @@ const DailyActivityChart: React.FC<DailyActivityChartProps> = ({ data }) => {
             <ClipboardList className="size-6 text-primary" />
           </div>
           <div>
-            <TitelMd>Daily Log Activity</TitelMd>
+            <TitelMd>{title}</TitelMd>
             <p className="text-sm text-gray-400 font-medium mt-0.5">
-              Entry trends for the last 7 days
+              {description}
             </p>
           </div>
         </div>

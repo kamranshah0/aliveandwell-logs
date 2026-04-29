@@ -22,3 +22,12 @@ export const updateDailyLog = (id: string, payload: any) => api.patch(`/daily-lo
 
 export const deleteDailyLog = (id: string) => api.delete(`/daily-log/${id}`);
 export const getDailyLogStats = () => api.get("/daily-log/stats");
+export const getAdminDailyLogReports = (params?: { startDate?: string; endDate?: string }) => 
+  api.get("/daily-log/admin-reports", { params });
+
+// FIELD MANAGEMENT
+export const getDailyLogFields = () => api.get("/daily-log/fields");
+export const createDailyLogField = (payload: any) => api.post("/daily-log/fields", payload);
+export const updateDailyLogField = (id: string, payload: any) => api.patch(`/daily-log/fields/${id}`, payload);
+export const deleteDailyLogField = (id: string) => api.delete(`/daily-log/fields/${id}`);
+export const reorderDailyLogFields = (ids: string[]) => api.post("/daily-log/fields/reorder", { ids });

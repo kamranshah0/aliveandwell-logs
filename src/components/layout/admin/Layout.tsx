@@ -20,7 +20,7 @@ export default function Layout() {
         <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
         <main
-          className={` transition-all duration-300 pt-[72px] w-full min-h-screen bg-custom-bg-1 
+          className={` transition-all duration-300 pt-[72px] w-full min-w-0 min-h-screen bg-custom-bg-1 
             ${collapsed ? "ps-[72px]" : "ps-[200px] "}`}
         >
           <Navbar collapsed={collapsed} setCollapsed={setCollapsed} />

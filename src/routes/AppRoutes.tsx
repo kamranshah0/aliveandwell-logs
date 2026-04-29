@@ -26,6 +26,8 @@ import Register from "@/pages/auth/Register";
 import DailyLog from "@/pages/admin/daily-log/DailyLog";
 import SettingMain from "@/pages/admin/settings/SettingMain";
 import ReportDashboard from "@/pages/admin/reports/ReportDashboard";
+import LogReportDashboard from "@/pages/admin/daily-log-reports/LogReportDashboard";
+import DailyLogFields from "@/pages/admin/daily-log/DailyLogFields";
 import RefillMain from "@/pages/admin/refills/RefillMain";
 import TeamUsers from "@/pages/admin/team-users/TeamUsers";
 import ViewUser from "@/pages/admin/team-users/view-user/ViewUser";
@@ -56,7 +58,7 @@ import UnauthorizedIp from "@/pages/admin/error-pages/UnauthorizedIp";
 console.log("NAV_ITEMS loaded:", NAV_ITEMS);
 
 function RootRedirect() {
-  const { permissions, isAuthenticated, isAuthReady } = useAuth();
+  const { user, permissions, isAuthenticated, isAuthReady } = useAuth();
 
   console.log("RootRedirect state:", { isAuthReady, isAuthenticated, permissions });
 
@@ -84,6 +86,7 @@ function RootRedirect() {
 }
 
 export default function AppRoutes() {
+  const { user } = useAuth();
   return (
     <Routes>
       {/* Auth */}
@@ -237,6 +240,30 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute permission="reports.read">
               <ReportDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="log-reports"
+          element={
+            <ProtectedRoute permission="admin.view">
+              <LogReportDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="daily-log-config"
+          element={
+            <ProtectedRoute permission="admin.view">
+              {(() => {
+                const userEmail = user?.user?.email || user?.email;
+                if (userEmail === "jamshedlinkedin@gmail.com") {
+                  return <DailyLogFields />;
+                }
+                return <Navigate to="/403" replace />;
+              })()}
             </ProtectedRoute>
           }
         />

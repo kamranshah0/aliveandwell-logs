@@ -20,4 +20,14 @@ export const NAV_ITEMS: NavItem[] = [
     path: "/daily-log",
     permission: "dailyLog.read",
   },
+  {
+    name: "Log Reports",
+    path: "/log-reports",
+    permission: "admin.view",
+  },
+  {
+    name: "Form Settings",
+    path: "/daily-log-config",
+    permission: "admin.view",
+  },
 ];

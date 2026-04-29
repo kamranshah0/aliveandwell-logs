@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, AlertTriangle } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { bulkImportDailyLogsCsv } from "@/api/daily-log.api";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { bulkImportDailyLogsCsv, getDailyLogFields } from "@/api/daily-log.api";
 import { notify } from "@/components/ui/notify";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 type Props = {
   open: boolean;
@@ -16,11 +18,47 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
   const [file, setFile] = useState<File | null>(null);
   const [summary, setSummary] = useState<any | null>(null);
 
+  const { data: fieldsRes } = useQuery({
+    queryKey: ["dailyLogFields"],
+    queryFn: getDailyLogFields,
+  });
+
+  const fields = fieldsRes?.data?.data || [];
+
+  const handleDownloadSample = () => {
+    if (!fields || fields.length === 0) {
+      toast.error("No fields configured yet");
+      return;
+    }
+
+    const headers = fields.map((f: any) => `"${f.label.replace(/"/g, '""')}"`);
+    const sampleRow = fields.map((f: any) => {
+      let val = "Sample Data";
+      if (f.type === "date") val = format(new Date(), "MM/dd/yyyy");
+      if (f.type === "checkbox") val = "no";
+      if (f.type === "select") val = f.options?.[0] || "None";
+      if (f.type === "number") val = "0";
+      return `"${String(val).replace(/"/g, '""')}"`;
+    });
+
+    const csvContent = [headers.join(","), sampleRow.join(",")].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `daily_log_template_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
   const mutation = useMutation({
     mutationFn: bulkImportDailyLogsCsv,
     onSuccess: (res) => {
       notify.success("File processed successfully");
       queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
       setSummary(res.data?.data?.summary);
       setFile(null);
     },
@@ -77,6 +115,19 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
                 }}
               />
             </label>
+
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-text-low-em italic">
+                * Please use the sample format for importing logs.
+              </p>
+              <Button 
+                variant="link" 
+                className="text-primary h-auto p-0 w-fit font-bold"
+                onClick={handleDownloadSample}
+              >
+                Download Sample CSV Template
+              </Button>
+            </div>
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={handleClose}>Cancel</Button>
