@@ -22,6 +22,10 @@ export const exportDailyLogsExcel = () => api.get("/daily-log/export/excel");
 export const updateDailyLog = (id: string, payload: any) => api.patch(`/daily-log/${id}`, payload);
 
 export const deleteDailyLog = (id: string) => api.delete(`/daily-log/${id}`);
+export const bulkDeleteDailyLogs = async (ids: string[]) => {
+  const res = await api.post("/daily-log/bulk-delete", { ids });
+  return res.data;
+};
 export const getDailyLogStats = () => api.get("/daily-log/stats");
 export const getAdminDailyLogReports = (params?: { startDate?: string; endDate?: string }) => 
   api.get("/daily-log/admin-reports", { params });

@@ -29,6 +29,7 @@ import {
   createDailyLog,
   updateDailyLog,
   deleteDailyLog,
+  bulkDeleteDailyLogs,
   exportDailyLogsCsv,
   exportDailyLogsExcel,
   getDailyLogFields,
@@ -48,7 +49,6 @@ import { cn } from "@/lib/utils";
 import MainHeader from "@/components/molecules/MainHeader";
 import MainWrapper from "@/components/molecules/MainWrapper";
 import { DataTable } from "@/components/table/DataTable";
-import { TableColumns } from "./columns";
 import { DataFilters } from "./filters";
 import type { DailyLogType } from "./types";
 import UploadDailyLogCsvModal from "@/components/modals/UploadDailyLogCsvModal";
@@ -58,6 +58,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DeleteConfirmModal } from "@/components/modals/DeleteConfirmModal";
 
 const baseDailyLogSchema = z.object({
   date: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, "Date must be MM/DD/YYYY"),
@@ -72,6 +73,8 @@ const DailyLog: React.FC = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[] | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -253,12 +256,74 @@ const DailyLog: React.FC = () => {
 
   const deleteMutation = useMutation({
     mutationFn: deleteDailyLog,
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["daily-logs"] });
+      const previousLogsData = queryClient.getQueryData<any>(["daily-logs"]);
+      
+      queryClient.setQueryData<any>(["daily-logs"], (old: any) => {
+        if (!old?.data?.data) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            data: old.data.data.filter((p: any) => p.id !== id)
+          }
+        };
+      });
+      
+      return { previousLogsData };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
       queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
       toast.success("Log entry deleted successfully");
+      setDeleteId(null);
     },
-    onError: () => toast.error("Failed to delete log entry"),
+    onError: (_err, _id, context) => {
+      if (context?.previousLogsData) {
+        queryClient.setQueryData(["daily-logs"], context.previousLogsData);
+      }
+      toast.error("Failed to delete log entry");
+      setDeleteId(null);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: bulkDeleteDailyLogs,
+    onMutate: async (ids: string[]) => {
+      await queryClient.cancelQueries({ queryKey: ["daily-logs"] });
+      const previousLogsData = queryClient.getQueryData<any>(["daily-logs"]);
+      
+      // 🚀 INSTANT UI UPDATE (Optimistic)
+      queryClient.setQueryData<any>(["daily-logs"], (old: any) => {
+        if (!old?.data?.data) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            data: old.data.data.filter((p: any) => !ids.includes(p.id))
+          }
+        };
+      });
+      
+      return { previousLogsData };
+    },
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
+      toast.success("Logs deleted successfully");
+      setBulkDeleteIds(null);
+    },
+    onError: (_err, _ids, context) => {
+      if (context?.previousLogsData) {
+        queryClient.setQueryData(["daily-logs"], context.previousLogsData);
+      }
+      toast.error("Failed to perform bulk delete");
+      setBulkDeleteIds(null);
+    },
   });
 
   const handleCloseForm = () => {
@@ -277,10 +342,8 @@ const DailyLog: React.FC = () => {
     });
   };
 
-  const onDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this log entry?")) {
-      deleteMutation.mutate(id);
-    }
+  const handleDelete = (id: string) => {
+    setDeleteId(id);
   };
 
   const onSubmit = (data: any) => {
@@ -384,7 +447,7 @@ const DailyLog: React.FC = () => {
                 <Pencil className="mr-2 size-4" /> Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => onDelete(log.id)}
+                onClick={() => handleDelete(log.id)}
                 className="cursor-pointer text-red-600"
               >
                 <Trash2 className="mr-2 size-4" /> Delete
@@ -625,6 +688,29 @@ const DailyLog: React.FC = () => {
         data={logs}
         filters={DataFilters}
         isLoading={isLoading}
+        isBulkDeleting={bulkDeleteMutation.isPending}
+        onDelete={(id) => setDeleteId(String(id))}
+        onBulkDelete={(ids) => setBulkDeleteIds(ids)}
+      />
+
+      <DeleteConfirmModal
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        title="Delete Log Entry"
+        description="Are you sure you want to delete this log entry? This action cannot be undone."
+        isLoading={deleteMutation.isPending}
+      />
+
+      <DeleteConfirmModal
+        open={!!bulkDeleteIds}
+        onClose={() => setBulkDeleteIds(null)}
+        onConfirm={() =>
+          bulkDeleteIds && bulkDeleteMutation.mutate(bulkDeleteIds)
+        }
+        title="Bulk Delete Logs"
+        description={`Are you sure you want to delete ${bulkDeleteIds?.length} log entries? This action cannot be undone.`}
+        isLoading={bulkDeleteMutation.isPending}
       />
 
       <UploadDailyLogCsvModal

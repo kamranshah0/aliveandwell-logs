@@ -1,11 +1,34 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { DailyLogType } from "./types";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Check, X } from "lucide-react";
 
 const renderCheck = (val: boolean) => val ? <Check className="w-4 h-4 text-green-600" /> : <X className="w-4 h-4 text-red-300" />;
 
 export const generateColumns = (dynamicFields: any[]): ColumnDef<DailyLogType>[] => {
   const baseColumns: ColumnDef<DailyLogType>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "date",
       header: "Date",
