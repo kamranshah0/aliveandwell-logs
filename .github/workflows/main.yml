@@ -24,6 +24,9 @@ jobs:
           
           # App directory
           cd /var/www/aliveandwell-logs
+
+          echo "🧹 Cleaning old changes"
+          git reset --hard
           
           # Git pull
           git pull origin main
