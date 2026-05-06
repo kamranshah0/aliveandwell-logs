@@ -26,6 +26,10 @@ export const bulkDeleteDailyLogs = async (ids: string[]) => {
   const res = await api.post("/daily-log/bulk-delete", { ids });
   return res.data;
 };
+export const deleteAllDailyLogs = async () => {
+  const res = await api.delete("/daily-log/delete-all");
+  return res.data;
+};
 export const getDailyLogStats = () => api.get("/daily-log/stats");
 export const getAdminDailyLogReports = (params?: { startDate?: string; endDate?: string }) => 
   api.get("/daily-log/admin-reports", { params });

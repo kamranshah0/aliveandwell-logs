@@ -30,6 +30,7 @@ import {
   updateDailyLog,
   deleteDailyLog,
   bulkDeleteDailyLogs,
+  deleteAllDailyLogs,
   exportDailyLogsCsv,
   exportDailyLogsExcel,
   getDailyLogFields,
@@ -75,6 +76,7 @@ const DailyLog: React.FC = () => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState<string[] | null>(null);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -326,6 +328,41 @@ const DailyLog: React.FC = () => {
     },
   });
 
+  const deleteAllMutation = useMutation({
+    mutationFn: deleteAllDailyLogs,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["daily-logs"] });
+      const previousLogsData = queryClient.getQueryData<any>(["daily-logs"]);
+      
+      // Optimistically clear the list
+      queryClient.setQueryData<any>(["daily-logs"], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            data: []
+          }
+        };
+      });
+      
+      return { previousLogsData };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
+      toast.success("All logs cleared successfully");
+      setIsDeletingAll(false);
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousLogsData) {
+        queryClient.setQueryData(["daily-logs"], context.previousLogsData);
+      }
+      toast.error("Failed to clear all logs");
+      setIsDeletingAll(false);
+    },
+  });
+
   const handleCloseForm = () => {
     setIsAdding(false);
     setEditingId(null);
@@ -503,12 +540,21 @@ const DailyLog: React.FC = () => {
             </DropdownMenu>
 
             {!isAdding && (
-              <Button
-                onClick={() => setIsAdding(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="size-4" /> Add New Log
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  onClick={() => setIsDeletingAll(true)}
+                  className="flex items-center gap-2 bg-red-600 hover:bg-red-700"
+                >
+                  <Trash2 className="size-4" /> Clear All Logs
+                </Button>
+                <Button
+                  onClick={() => setIsAdding(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="size-4" /> Add New Log
+                </Button>
+              </div>
             )}
           </div>
         }
@@ -711,6 +757,15 @@ const DailyLog: React.FC = () => {
         title="Bulk Delete Logs"
         description={`Are you sure you want to delete ${bulkDeleteIds?.length} log entries? This action cannot be undone.`}
         isLoading={bulkDeleteMutation.isPending}
+      />
+
+      <DeleteConfirmModal
+        open={isDeletingAll}
+        onClose={() => setIsDeletingAll(false)}
+        onConfirm={() => deleteAllMutation.mutate()}
+        title="Clear All Daily Logs"
+        description="Are you sure you want to delete ALL daily log entries? This action will remove every record permanently and cannot be undone."
+        isLoading={deleteAllMutation.isPending}
       />
 
       <UploadDailyLogCsvModal
