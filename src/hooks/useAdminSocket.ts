@@ -4,11 +4,13 @@ import io from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { notify } from "@/components/ui/notify";
 import { useNotificationStore } from "@/stores/notification.store";
+import { useImportProgressStore } from "@/stores/import-progress.store";
 let socket: any = null;
 
 export const useAdminSocket = () => {
   const queryClient = useQueryClient();
     const triggerNew = useNotificationStore((s) => s.triggerNew);
+    const setProgress = useImportProgressStore((s) => s.setProgress);
 
 
   useEffect(() => {
@@ -22,10 +24,13 @@ export const useAdminSocket = () => {
       console.log("✅ Admin socket connected");
     });
 
+    socket.on("import-progress", (data: any) => {
+      console.log("📊 Import progress:", data);
+      setProgress(data);
+    });
+
     socket.on("new-refill-request", (data: any) => {
       console.log("🔔 New refill request", data);
-
-
 
        triggerNew();
       // 🔁 Refresh notification list

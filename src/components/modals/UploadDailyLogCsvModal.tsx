@@ -15,6 +15,8 @@ import { notify } from "@/components/ui/notify";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
+import { useImportProgressStore } from "@/stores/import-progress.store";
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -24,6 +26,9 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [summary, setSummary] = useState<any | null>(null);
+  
+  const progress = useImportProgressStore((s) => s.progress);
+  const clearProgress = useImportProgressStore((s) => s.clearProgress);
 
   const { data: fieldsRes } = useQuery({
     queryKey: ["dailyLogFields"],
@@ -91,9 +96,11 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
       queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
       setSummary(res.data?.data?.summary);
       setFile(null);
+      setTimeout(clearProgress, 3000); // Clear progress after a delay
     },
     onError: () => {
       notify.error("Failed to import daily logs");
+      clearProgress();
     },
   });
 
@@ -102,12 +109,14 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
       notify.error("Please select a file");
       return;
     }
+    clearProgress();
     mutation.mutate(file);
   };
 
   const handleClose = () => {
     setFile(null);
     setSummary(null);
+    clearProgress();
     onClose();
   };
 
@@ -146,6 +155,25 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
               />
             </label>
 
+            {mutation.isPending && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-bold text-primary animate-pulse">
+                  <span>Processing Rows...</span>
+                  {progress && (
+                    <span>{progress.current} / {progress.total}</span>
+                  )}
+                </div>
+                <div className="h-2 w-full bg-primary/10 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary transition-all duration-300 ease-out"
+                    style={{ 
+                      width: `${progress ? (progress.current / progress.total) * 100 : 5}%` 
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col gap-2">
               <p className="text-xs text-text-low-em italic">
                 * Please use the sample format for importing logs.
@@ -171,9 +199,9 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleClose}>Cancel</Button>
+              <Button variant="outline" onClick={handleClose} disabled={mutation.isPending}>Cancel</Button>
               <Button onClick={handleUpload} disabled={mutation.isPending}>
-                {mutation.isPending ? "Uploading..." : "Upload File"}
+                {mutation.isPending ? "Processing..." : "Upload File"}
               </Button>
             </div>
           </div>
@@ -189,6 +217,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
               <div className="text-sm space-y-1">
                 <p>Total Rows: <b>{summary.totalRows}</b></p>
                 <p className="text-green-600">Successful: <b>{summary.successCount}</b></p>
+                <p className="text-blue-600">Skipped (Duplicates): <b>{summary.skippedCount}</b></p>
                 <p className="text-red-600">Failed: <b>{summary.failedCount}</b></p>
               </div>
             </div>
