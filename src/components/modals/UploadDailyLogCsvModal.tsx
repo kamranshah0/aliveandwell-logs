@@ -14,6 +14,9 @@ import { bulkImportDailyLogsCsv, getDailyLogFields } from "@/api/daily-log.api";
 import { notify } from "@/components/ui/notify";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
+import { useImportStore } from "@/stores/import.store";
+import { cn } from "@/lib/utils";
 
 type Props = {
   open: boolean;
@@ -24,6 +27,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [summary, setSummary] = useState<any | null>(null);
+  const { progress, clearProgress } = useImportStore();
 
   const { data: fieldsRes } = useQuery({
     queryKey: ["dailyLogFields"],
@@ -91,6 +95,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
       queryClient.invalidateQueries({ queryKey: ["adminDailyLogReports"] });
       setSummary(res.data?.data?.summary);
       setFile(null);
+      clearProgress();
     },
     onError: () => {
       notify.error("Failed to import daily logs");
@@ -108,6 +113,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
   const handleClose = () => {
     setFile(null);
     setSummary(null);
+    clearProgress();
     onClose();
   };
 
@@ -176,6 +182,24 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
                 {mutation.isPending ? "Uploading..." : "Upload File"}
               </Button>
             </div>
+
+            {mutation.isPending && (
+              <div className="mt-4 p-4 border rounded-xl bg-primary/5 space-y-3 animate-in fade-in zoom-in-95">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-primary">
+                  <span>{progress ? `Importing ${progress.fileName}` : "Processing file..."}</span>
+                  <span>{progress ? `${Math.round((progress.current / progress.total) * 100)}%` : "Wait..."}</span>
+                </div>
+                <Progress 
+                  value={progress ? (progress.current / progress.total) * 100 : undefined} 
+                  className={cn("h-2", !progress && "animate-pulse")} 
+                />
+                <p className="text-[10px] text-center text-text-low-em font-medium">
+                  {progress 
+                    ? `Processed ${progress.current} of ${progress.total} entries...` 
+                    : "Connecting to server for progress updates..."}
+                </p>
+              </div>
+            )}
           </div>
         )}
 

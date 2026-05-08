@@ -4,6 +4,7 @@ import io from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { notify } from "@/components/ui/notify";
 import { useNotificationStore } from "@/stores/notification.store";
+import { useImportStore } from "@/stores/import.store";
 let socket: any = null;
 
 export const useAdminSocket = () => {
@@ -14,7 +15,8 @@ export const useAdminSocket = () => {
   useEffect(() => {
     if (socket) return;
 
-    socket = io("https://aliveandwell-api.venturequeue.com/admin", {
+    const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || "https://aliveandwell-api.venturequeue.com";
+    socket = io(`${socketUrl}/admin`, {
       transports: ["websocket"],
     });
 
@@ -55,6 +57,10 @@ export const useAdminSocket = () => {
           n.close();
         };
       }
+    });
+
+    socket.on("import-progress", (data: any) => {
+      useImportStore.getState().setProgress(data);
     });
 
     socket.on("disconnect", () => {
