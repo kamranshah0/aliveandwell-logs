@@ -96,7 +96,7 @@ const DailyLog: React.FC = () => {
       toast.error("No fields configured yet");
       return;
     }
-    
+
     const headers = latestFields.map((f: any) => `"${f.label.replace(/"/g, '""')}"`);
     const sampleRow = latestFields.map((f: any) => {
       let val = "Sample Data";
@@ -106,7 +106,7 @@ const DailyLog: React.FC = () => {
       if (f.type === "number") val = "0";
       return `"${String(val).replace(/"/g, '""')}"`;
     });
-    
+
     const csvContent = [headers.join(","), sampleRow.join(",")].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -141,7 +141,7 @@ const DailyLog: React.FC = () => {
     const worksheet = XLSX.utils.json_to_sheet([sampleRow]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Log Template");
-    
+
     XLSX.writeFile(workbook, `daily_log_template_${format(new Date(), "yyyy-MM-dd")}.xlsx`);
   };
 
@@ -225,6 +225,19 @@ const DailyLog: React.FC = () => {
 
   const logs = logsData?.data?.data || [];
 
+  const dynamicFilters = React.useMemo(() => {
+    const locations = Array.from(new Set(logs.map((l: any) => l.location).filter(Boolean)))
+      .sort()
+      .map(loc => ({ label: String(loc), value: String(loc) }));
+
+    return DataFilters.map(f => {
+      if (f.id === "location") {
+        return { ...f, options: locations };
+      }
+      return f;
+    });
+  }, [logs]);
+
   const createMutation = useMutation({
     mutationFn: createDailyLog,
     onSuccess: () => {
@@ -261,7 +274,7 @@ const DailyLog: React.FC = () => {
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({ queryKey: ["daily-logs"] });
       const previousLogsData = queryClient.getQueryData<any>(["daily-logs"]);
-      
+
       queryClient.setQueryData<any>(["daily-logs"], (old: any) => {
         if (!old?.data?.data) return old;
         return {
@@ -272,7 +285,7 @@ const DailyLog: React.FC = () => {
           }
         };
       });
-      
+
       return { previousLogsData };
     },
     onSuccess: () => {
@@ -298,7 +311,7 @@ const DailyLog: React.FC = () => {
     onMutate: async (ids: string[]) => {
       await queryClient.cancelQueries({ queryKey: ["daily-logs"] });
       const previousLogsData = queryClient.getQueryData<any>(["daily-logs"]);
-      
+
       // 🚀 INSTANT UI UPDATE (Optimistic)
       queryClient.setQueryData<any>(["daily-logs"], (old: any) => {
         if (!old?.data?.data) return old;
@@ -310,7 +323,7 @@ const DailyLog: React.FC = () => {
           }
         };
       });
-      
+
       return { previousLogsData };
     },
     onSuccess: (res: any) => {
@@ -333,7 +346,7 @@ const DailyLog: React.FC = () => {
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["daily-logs"] });
       const previousLogsData = queryClient.getQueryData<any>(["daily-logs"]);
-      
+
       // Optimistically clear the list
       queryClient.setQueryData<any>(["daily-logs"], (old: any) => {
         if (!old) return old;
@@ -345,7 +358,7 @@ const DailyLog: React.FC = () => {
           }
         };
       });
-      
+
       return { previousLogsData };
     },
     onSuccess: () => {
@@ -439,7 +452,7 @@ const DailyLog: React.FC = () => {
     try {
       const res = await exportDailyLogsExcel();
       const { buffer, fileName } = res.data.data;
-      
+
       const byteCharacters = atob(buffer);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -447,7 +460,7 @@ const DailyLog: React.FC = () => {
       }
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -582,7 +595,7 @@ const DailyLog: React.FC = () => {
               <div className="w-full min-w-0 overflow-x-auto custom-scroll">
                 <div className="min-w-max pb-4">
                   {/* UNIFIED SPREADSHEET GRID (DYNAMIC) */}
-                  <div 
+                  <div
                     className="grid border-l border-t border-gray-200"
                     style={{
                       gridTemplateColumns
@@ -618,9 +631,9 @@ const DailyLog: React.FC = () => {
                                       className={cn(
                                         "w-full h-9 text-xs justify-start text-left font-normal",
                                         !dateField.value && "text-muted-foreground",
-                                        (field.name === "date" || field.name === "location" || field.name === "representative") && "bg-gray-50 cursor-not-allowed"
+                                        (editingId ? (field.name === "location" || field.name === "representative") : (field.name === "date" || field.name === "location" || field.name === "representative")) && "bg-gray-50 cursor-not-allowed"
                                       )}
-                                      disabled={field.name === "date" || field.name === "location" || field.name === "representative"}
+                                      disabled={editingId ? (field.name === "location" || field.name === "representative") : (field.name === "date" || field.name === "location" || field.name === "representative")}
                                     >
                                       <CalendarIcon className="mr-2 h-3 w-3" />
                                       {dateField.value ? dateField.value : <span>Pick a date</span>}
@@ -645,6 +658,7 @@ const DailyLog: React.FC = () => {
                                 <Select
                                   onValueChange={selectField.onChange}
                                   value={selectField.value}
+                                  disabled={field.name === "location" || field.name === "representative"}
                                 >
                                   <SelectTrigger className="h-9 text-xs">
                                     <SelectValue placeholder={field.placeholder || field.label} />
@@ -669,6 +683,7 @@ const DailyLog: React.FC = () => {
                                     checked={checkField.value}
                                     onCheckedChange={checkField.onChange}
                                     className="size-5"
+                                    disabled={field.name === "location" || field.name === "representative"}
                                   />
                                 )}
                               />
@@ -732,11 +747,12 @@ const DailyLog: React.FC = () => {
       <DataTable<DailyLogType>
         columns={columnsWithActions}
         data={logs}
-        filters={DataFilters}
+        filters={dynamicFilters}
         isLoading={isLoading}
         isBulkDeleting={bulkDeleteMutation.isPending}
         onDelete={(id) => setDeleteId(String(id))}
         onBulkDelete={(ids) => setBulkDeleteIds(ids)}
+        defaultSorting={[{ id: "date", desc: true }]}
       />
 
       <DeleteConfirmModal

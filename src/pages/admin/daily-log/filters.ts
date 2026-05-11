@@ -16,6 +16,13 @@ export const DataFilters = [
     ],
   },
   {
+    title: "Location",
+    id: "location",
+    type: "select",
+    placeholder: "All Locations",
+    options: [],
+  },
+  {
     title: "Date Range",
     id: "date",
     type: "date-range",

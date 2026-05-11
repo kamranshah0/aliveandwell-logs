@@ -30,6 +30,7 @@ interface DataTableProps<TData> {
   isBulkDeleting?: boolean;
   isLoading?: boolean;
   meta?: any;
+  defaultSorting?: { id: string; desc: boolean }[];
 }
 
 export function DataTable<TData>({
@@ -41,8 +42,10 @@ export function DataTable<TData>({
   isBulkDeleting = false,
   meta,
   isLoading = false,
+  defaultSorting = [],
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState({});
+  const [sorting, setSorting] = useState<any>(defaultSorting);
 
   const table = useReactTable({
     data,
@@ -80,8 +83,10 @@ export function DataTable<TData>({
     getSortedRowModel: getSortedRowModel(),
     enableColumnFilters: true,
     onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
     state: {
       rowSelection,
+      sorting,
     },
 
     globalFilterFn: (row, _columnId, filterValue) => {
