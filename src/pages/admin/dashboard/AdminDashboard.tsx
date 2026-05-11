@@ -7,6 +7,7 @@ import TitelMd from "@/components/molecules/TiteMd";
 import DashbaordDetailCard from "@/components/molecules/DashbaordDetailCard";
 import { useQuery } from "@tanstack/react-query";
 import { getAdminDailyLogReports, getDailyLogFields } from "@/api/daily-log.api";
+import { getDashboardConfig } from "@/api/dashboard.api";
 import { getPharmacies } from "@/api/pharmacy.api";
 import DashboardStatsCardSkeleton from "@/components/skeletons/DashboardStatsCardSkeleton";
 import PharmacyCardSkeleton from "@/components/skeletons/PharmacyCardSkeleton";
@@ -15,22 +16,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchSelect } from "@/components/ui/SearchSelect";
 import { Button } from "@/components/ui/button";
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import { useAuth } from "@/auth/useAuth";
 
 const AdminDashboard = () => {
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
-  const [branchId, setBranchId] = useState<string>("all");
+  const { user } = useAuth();
+  const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
+
+  const { data: configRes, isLoading: isLoadingConfig } = useQuery({
+    queryKey: ["dashboardConfig"],
+    queryFn: getDashboardConfig,
+  });
+
+  const globalConfig = configRes?.data || {};
 
   const { data: adminStats, isLoading, isFetching } = useQuery({
-    queryKey: ["adminDailyLogReports", startDate, endDate, branchId],
+    queryKey: ["adminDailyLogReports", globalConfig.startDate, globalConfig.endDate, globalConfig.location],
     queryFn: async () => {
+      const resolvedEndDate = globalConfig.endDate === "today" 
+        ? format(new Date(), "yyyy-MM-dd") 
+        : (globalConfig.endDate || "");
+
       const res = await getAdminDailyLogReports({
-        startDate,
-        endDate,
-        branchId: branchId === "all" ? undefined : branchId,
+        startDate: globalConfig.startDate || "",
+        endDate: resolvedEndDate,
+        branchId: globalConfig.location === "all" ? undefined : globalConfig.location,
       });
       return res.data.data;
     },
+    enabled: !!configRes,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -48,83 +61,27 @@ const AdminDashboard = () => {
   const fields = fieldsRes?.data?.data || [];
   
   const [activeBranchesList, setActiveBranchesList] = useState<string[]>([]);
+  const [branchSearch, setBranchSearch] = useState("");
 
   React.useEffect(() => {
-    if (branchId === "all" && adminStats?.entriesByBranch) {
+    if (adminStats?.entriesByBranch) {
       const names = adminStats.entriesByBranch.map((b: any) => b.name);
       if (names.length > 0) setActiveBranchesList(names);
     }
-  }, [adminStats?.entriesByBranch, branchId]);
+  }, [adminStats?.entriesByBranch]);
 
-  const filteredPharmacies = pharmacies.filter((p: any) => 
-    activeBranchesList.includes(p.name) || p.id === branchId
-  );
-
-  const [branchSearch, setBranchSearch] = useState("");
-
-  const handleResetFilters = () => {
-    setStartDate("");
-    setEndDate("");
-    setBranchId("all");
-    setBranchSearch("");
-  };
+  const isLoadingTotal = isLoading || isFetching || isLoadingConfig;
 
   return (
     <MainWrapper className="flex flex-col gap-8">
       <MainHeader
         title="Admin Dashboard"
         description="Comprehensive overview of all log entries across the organization."
-        actionContent={
-          <div className="flex flex-wrap items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-            {/* Date Filters */}
-            <div className="flex items-center gap-1 bg-white border rounded px-2 py-1 shadow-sm">
-              <Calendar className="size-3.5 text-gray-400" />
-              <input 
-                type="date" 
-                value={startDate} 
-                onChange={(e) => setStartDate(e.target.value)}
-                className="text-xs border-none focus:ring-0 outline-none p-0 cursor-pointer"
-              />
-              <span className="text-gray-300 mx-1">/</span>
-              <input 
-                type="date" 
-                value={endDate} 
-                onChange={(e) => setEndDate(e.target.value)}
-                className="text-xs border-none focus:ring-0 outline-none p-0 cursor-pointer"
-              />
-            </div>
-
-            {/* Location (Branch) Search Select */}
-            <div className="w-[200px]">
-              <SearchSelect 
-                placeholder="All Active Locations"
-                value={branchId}
-                onChange={setBranchId}
-                options={[
-                  { label: "All Active Locations", value: "all" },
-                  ...(activeBranchesList.map((name: string) => ({
-                    label: name,
-                    value: name
-                  })))
-                ]}
-              />
-            </div>
-
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleResetFilters}
-              className="h-8 text-gray-400 hover:text-red-500"
-            >
-              <FilterX className="size-3.5" />
-            </Button>
-          </div>
-        }
       />
 
       {/* TOP METRICS */}
       <div className="space-y-4">
-        {(isLoading || isFetching) ? (
+        {isLoadingTotal ? (
           <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
             {Array.from({ length: 4 }).map((_, i) => (
               <DashboardStatsCardSkeleton key={i} />
@@ -162,7 +119,7 @@ const AdminDashboard = () => {
 
       {/* MONTHLY TREND CHART */}
       <div className="grid grid-cols-1">
-        {(isLoading || isFetching) ? (
+        {isLoadingTotal ? (
           <div className="h-[300px] bg-gray-100 animate-pulse rounded-xl" />
         ) : (
           <DailyActivityChart 
@@ -194,7 +151,7 @@ const AdminDashboard = () => {
               <Building2 className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
             </div>
           </div>
-          {(isLoading || isFetching) ? (
+          {isLoadingTotal ? (
             <div className="grid grid-cols-1 gap-4">
               {Array.from({ length: 3 }).map((_, i) => <PharmacyCardSkeleton key={i} />)}
             </div>
@@ -219,7 +176,7 @@ const AdminDashboard = () => {
         </div>
 
         <div className="flex flex-col gap-4">
-          {(isLoading || isFetching) ? (
+          {isLoadingTotal ? (
             <div className="h-[250px] bg-gray-100 animate-pulse rounded-xl" />
           ) : (
             <DailyActivityChart 

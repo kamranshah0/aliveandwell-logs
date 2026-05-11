@@ -9,6 +9,7 @@ import AuthLayout from "@/components/layout/authLayout/AuthLayout";
 // Shipment Module
 
 import ShipmentDashboard from "../pages/admin/dashboard/Dashboard";
+import DashboardSettings from "@/pages/admin/dashboard/DashboardSettings";
 import ShippmentLayout from "@/components/layout/admin/Layout";
 
 import RolesPermissions from "@/pages/admin/roles-permissions/RolesPermissions";
@@ -262,6 +263,20 @@ export default function AppRoutes() {
                 const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
                 if (username === "sagar") {
                   return <DailyLogFields />;
+                }
+                return <Navigate to="/403" replace />;
+              })()}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="dashboard-config"
+          element={
+            <ProtectedRoute permission="admin.view">
+              {(() => {
+                const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
+                if (username === "sagar") {
+                  return <DashboardSettings />;
                 }
                 return <Navigate to="/403" replace />;
               })()}

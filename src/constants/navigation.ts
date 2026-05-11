@@ -30,4 +30,9 @@ export const NAV_ITEMS: NavItem[] = [
     path: "/daily-log-config",
     permission: "admin.view",
   },
+  {
+    name: "Dashboard Settings",
+    path: "/dashboard-config",
+    permission: "admin.view",
+  },
 ];

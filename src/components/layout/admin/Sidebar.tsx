@@ -39,6 +39,7 @@ const ICON_MAP: Record<string, ReactNode> = {
   "/daily-log": <FileText className="size-5" />,
   "/log-reports": <FileText className="size-5" />,
   "/daily-log-config": <Settings className="size-5" />,
+  "/dashboard-config": <Settings className="size-5" />,
 };
 
 const mapNavItems = (items: NavItem[]): any[] => {
@@ -76,8 +77,8 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
     const userEmail = user?.user?.email || user?.email;
     const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
 
-    // Specific restriction for Form Settings (ONLY Sagar)
-    if (item.path === "/daily-log-config") {
+    // Specific restriction for Form Settings & Dashboard Settings (ONLY Sagar)
+    if (item.path === "/daily-log-config" || item.path === "/dashboard-config") {
       if (username !== "sagar") return false;
     }
 
