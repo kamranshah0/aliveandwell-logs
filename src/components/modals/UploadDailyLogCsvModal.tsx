@@ -213,6 +213,7 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
               <div className="text-sm space-y-1">
                 <p>Total Rows: <b>{summary.totalRows}</b></p>
                 <p className="text-green-600">Successful: <b>{summary.successCount}</b></p>
+                <p className="text-orange-600">Skipped (Duplicates): <b>{summary.skippedCount}</b></p>
                 <p className="text-red-600">Failed: <b>{summary.failedCount}</b></p>
               </div>
             </div>
