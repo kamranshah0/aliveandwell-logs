@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,19 +9,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getDashboardConfig, updateDashboardConfig } from "@/api/dashboard.api";
+import { getDailyLogFields } from "@/api/daily-log.api";
 import { toast } from "sonner";
 import MainHeader from "@/components/molecules/MainHeader";
 import MainWrapper from "@/components/molecules/MainWrapper";
-import { Settings, Save, RotateCcw } from "lucide-react";
+import { Settings, Save, RotateCcw, LayoutDashboard, Stethoscope, Briefcase } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+
+const dashboardCards = [
+  { key: "entriesThisMonth", label: "Entries This Month" },
+  { key: "totalEntries", label: "Total Entries" },
+  { key: "newPatients", label: "New Patients" },
+  { key: "existingPatients", label: "Existing Patients" },
+  { key: "refillPrescriptions", label: "Refills Prescription" },
+  { key: "newPrescriptions", label: "NEW Prescription" },
+  { key: "assistantProgram", label: "Assistant Program" },
+  { key: "enrolledPatients", label: "Enrolled Patients" },
+];
+
+const defaultVisibleCards = dashboardCards.reduce<Record<string, boolean>>((acc, card) => {
+  acc[card.key] = true;
+  return acc;
+}, {});
 
 const DashboardSettings = () => {
+  const queryClient = useQueryClient();
   const [startDate, setStartDate] = useState("");
   const [isAllHistory, setIsAllHistory] = useState(false);
   const [endDate, setEndDate] = useState("");
   const [isToday, setIsToday] = useState(false);
   const [location, setLocation] = useState("all");
+  const [visitServices, setVisitServices] = useState<string[]>([]);
+  const [visitTypes, setVisitTypes] = useState<string[]>([]);
+  const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>(defaultVisibleCards);
+
+  const { data: fieldsRes } = useQuery({
+    queryKey: ["dailyLogFields"],
+    queryFn: getDailyLogFields,
+  });
+
+  const availableVisitServices = fieldsRes?.data?.data?.find((f: any) => f.name === "visitServices")?.options || [];
+  const availableVisitTypes = fieldsRes?.data?.data?.find((f: any) => f.name === "visitType")?.options || [];
 
   const { data: configRes, isLoading: isLoadingConfig } = useQuery({
     queryKey: ["dashboardConfig"],
@@ -46,12 +77,19 @@ const DashboardSettings = () => {
         setEndDate(configRes.data.endDate || "");
       }
       setLocation(configRes.data.location || "all");
+      setVisitServices(configRes.data.visitServices || []);
+      setVisitTypes(configRes.data.visitTypes || []);
+      setVisibleCards({
+        ...defaultVisibleCards,
+        ...(configRes.data.visibleCards || {}),
+      });
     }
   }, [configRes]);
 
   const updateMutation = useMutation({
     mutationFn: updateDashboardConfig,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboardConfig"] });
       toast.success("Dashboard default settings updated successfully");
     },
     onError: () => {
@@ -64,6 +102,9 @@ const DashboardSettings = () => {
       startDate: isAllHistory ? "" : startDate,
       endDate: isToday ? "today" : endDate,
       location,
+      visitServices,
+      visitTypes,
+      visibleCards,
     });
   };
 
@@ -73,6 +114,16 @@ const DashboardSettings = () => {
     setEndDate("");
     setIsToday(false);
     setLocation("all");
+    setVisitServices([]);
+    setVisitTypes([]);
+    setVisibleCards(defaultVisibleCards);
+  };
+
+  const toggleCardVisibility = (key: string, checked: boolean) => {
+    setVisibleCards((current) => ({
+      ...current,
+      [key]: checked,
+    }));
   };
 
   if (isLoadingConfig) return <div className="p-8 text-center">Loading settings...</div>;
@@ -93,7 +144,81 @@ const DashboardSettings = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+              <div className="flex items-center gap-2">
+                <LayoutDashboard className="size-4 text-primary" />
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700">Dashboard Cards</h3>
+                  <p className="text-[10px] text-gray-400">Enable a card to show it on the Admin Dashboard.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {dashboardCards.map((card) => (
+                  <div
+                    key={card.key}
+                    className="flex items-center justify-between rounded-md border border-gray-100 bg-white px-4 py-3"
+                  >
+                    <label htmlFor={`card-${card.key}`} className="text-sm font-medium text-gray-700">
+                      {card.label}
+                    </label>
+                    <Switch
+                      id={`card-${card.key}`}
+                      checked={visibleCards[card.key]}
+                      onCheckedChange={(checked) => toggleCardVisibility(card.key, checked)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+              <div className="flex items-center gap-2">
+                <Briefcase className="size-4 text-primary" />
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700">Visit Services Cards</h3>
+                  <p className="text-[10px] text-gray-400">Select which services should appear as cards on the dashboard.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {availableVisitServices.map((service: string) => (
+                  <div key={service} className="flex items-center justify-between rounded-md border border-gray-100 bg-white px-4 py-3">
+                    <label className="text-sm font-medium text-gray-700">{service}</label>
+                    <Switch
+                      checked={visitServices.includes(service)}
+                      onCheckedChange={(checked) => {
+                        setVisitServices(prev => checked ? [...prev, service] : prev.filter(s => s !== service));
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+              <div className="flex items-center gap-2">
+                <Stethoscope className="size-4 text-primary" />
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700">Visit Type Cards</h3>
+                  <p className="text-[10px] text-gray-400">Select which visit types should appear as cards on the dashboard.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {availableVisitTypes.map((type: string) => (
+                  <div key={type} className="flex items-center justify-between rounded-md border border-gray-100 bg-white px-4 py-3">
+                    <label className="text-sm font-medium text-gray-700">{type}</label>
+                    <Switch
+                      checked={visitTypes.includes(type)}
+                      onCheckedChange={(checked) => {
+                        setVisitTypes(prev => checked ? [...prev, type] : prev.filter(t => t !== type));
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-sm font-semibold text-gray-700">Default Start Date</label>

@@ -1,27 +1,30 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import MainWrapper from "@/components/molecules/MainWrapper";
 import MainHeader from "@/components/molecules/MainHeader";
 import DashbaordCard from "@/components/molecules/DashbaordCard";
-import { ClipboardList, UsersRound, Building2, UserPlus, HeartPulse, FilterX, Calendar } from "lucide-react";
+import { ClipboardList, UsersRound, Building2, UserPlus, HeartPulse } from "lucide-react";
 import TitelMd from "@/components/molecules/TiteMd";
 import DashbaordDetailCard from "@/components/molecules/DashbaordDetailCard";
 import { useQuery } from "@tanstack/react-query";
-import { getAdminDailyLogReports, getDailyLogFields } from "@/api/daily-log.api";
+import { getAdminDailyLogReports } from "@/api/daily-log.api";
 import { getDashboardConfig } from "@/api/dashboard.api";
-import { getPharmacies } from "@/api/pharmacy.api";
 import DashboardStatsCardSkeleton from "@/components/skeletons/DashboardStatsCardSkeleton";
 import PharmacyCardSkeleton from "@/components/skeletons/PharmacyCardSkeleton";
 import DailyActivityChart from "./DailyActivityChart";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SearchSelect } from "@/components/ui/SearchSelect";
-import { Button } from "@/components/ui/button";
-import { format, startOfMonth, endOfMonth } from "date-fns";
-import { useAuth } from "@/auth/useAuth";
+import { format } from "date-fns";
+
+const defaultVisibleCards = {
+  entriesThisMonth: true,
+  totalEntries: true,
+  newPatients: true,
+  existingPatients: true,
+  refillPrescriptions: true,
+  newPrescriptions: true,
+  assistantProgram: true,
+  enrolledPatients: true,
+};
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
-  const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
-
   const { data: configRes, isLoading: isLoadingConfig } = useQuery({
     queryKey: ["dashboardConfig"],
     queryFn: getDashboardConfig,
@@ -47,30 +50,92 @@ const AdminDashboard = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: pharmaciesRes } = useQuery({
-    queryKey: ["pharmacies"],
-    queryFn: getPharmacies,
-  });
-
-  const { data: fieldsRes } = useQuery({
-    queryKey: ["dailyLogFields"],
-    queryFn: getDailyLogFields,
-  });
-
-  const pharmacies = pharmaciesRes?.data?.data || [];
-  const fields = fieldsRes?.data?.data || [];
+  const visibleCards = {
+    ...defaultVisibleCards,
+    ...(globalConfig.visibleCards || {}),
+  };
   
-  const [activeBranchesList, setActiveBranchesList] = useState<string[]>([]);
   const [branchSearch, setBranchSearch] = useState("");
 
-  React.useEffect(() => {
-    if (adminStats?.entriesByBranch) {
-      const names = adminStats.entriesByBranch.map((b: any) => b.name);
-      if (names.length > 0) setActiveBranchesList(names);
-    }
-  }, [adminStats?.entriesByBranch]);
-
   const isLoadingTotal = isLoading || isFetching || isLoadingConfig;
+  const totalEntries = adminStats?.entriesByDay?.reduce((sum: number, day: any) => sum + day.count, 0) || 0;
+  const newPatients = adminStats?.newPatients || 0;
+  const rawLogs = adminStats?.rawLogs || [];
+  const countByFieldValue = (fieldName: string, targetValue: string) =>
+    rawLogs.filter((log: any) => {
+      const value = log[fieldName] ?? log.additionalData?.[fieldName];
+      return String(value || "").trim().toLowerCase() === targetValue.toLowerCase();
+    }).length;
+
+  const baseMetricCards = [
+    {
+      key: "entriesThisMonth",
+      title: "Entries This Month",
+      value: adminStats?.currentMonthEntries || 0,
+      iconClassName: "bg-primary/10",
+      icon: <ClipboardList className="size-5 text-primary" />,
+    },
+    {
+      key: "totalEntries",
+      title: "Total Entries",
+      value: totalEntries,
+      iconClassName: "bg-green-50",
+      icon: <UsersRound className="size-5 text-green-600" />,
+    },
+    {
+      key: "newPatients",
+      title: "New Patients",
+      value: newPatients,
+      iconClassName: "bg-secondary/10",
+      icon: <UserPlus className="size-5 text-secondary" />,
+    },
+    {
+      key: "existingPatients",
+      title: "Existing Patients",
+      value: Math.max(totalEntries - newPatients, 0),
+      iconClassName: "bg-indigo-50",
+      icon: <UsersRound className="size-5 text-indigo-600" />,
+    },
+    {
+      key: "refillPrescriptions",
+      title: "Refills Prescription",
+      value: countByFieldValue("drOrdered", "Refill Prescription"),
+      iconClassName: "bg-amber-50",
+      icon: <ClipboardList className="size-5 text-amber-600" />,
+    },
+    {
+      key: "newPrescriptions",
+      title: "NEW Prescription",
+      value: countByFieldValue("drOrdered", "New Prescription"),
+      iconClassName: "bg-emerald-50",
+      icon: <ClipboardList className="size-5 text-emerald-600" />,
+    },
+    {
+      key: "enrolledPatients",
+      title: "Enrolled Patients",
+      value: adminStats?.enrolledPatients || 0,
+      iconClassName: "bg-blue-50",
+      icon: <HeartPulse className="size-5 text-blue-600" />,
+    },
+  ].filter((card) => visibleCards[card.key as keyof typeof visibleCards]);
+
+  const serviceCards = (globalConfig.visitServices || []).map((service: string) => ({
+    key: `service-${service}`,
+    title: service,
+    value: countByFieldValue("visitServices", service),
+    iconClassName: "bg-violet-50",
+    icon: <HeartPulse className="size-5 text-violet-600" />,
+  }));
+
+  const typeCards = (globalConfig.visitTypes || []).map((type: string) => ({
+    key: `type-${type}`,
+    title: type,
+    value: countByFieldValue("visitType", type),
+    iconClassName: "bg-rose-50",
+    icon: <HeartPulse className="size-5 text-rose-600" />,
+  }));
+
+  const metricCards = [...baseMetricCards, ...serviceCards, ...typeCards];
 
   return (
     <MainWrapper className="flex flex-col gap-8">
@@ -89,30 +154,15 @@ const AdminDashboard = () => {
           </div>
         ) : (
           <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
-            <DashbaordCard
-              title="Entries This Month"
-              value={adminStats?.currentMonthEntries || 0}
-              iconClassName="bg-primary/10"
-              icon={<ClipboardList className="size-5 text-primary" />}
-            />
-            <DashbaordCard
-              title="Total Entries"
-              value={adminStats?.entriesByDay?.reduce((sum: number, day: any) => sum + day.count, 0) || 0}
-              iconClassName="bg-green-50"
-              icon={<UsersRound className="size-5 text-green-600" />}
-            />
-            <DashbaordCard
-              title="New Patients"
-              value={adminStats?.newPatients || 0}
-              iconClassName="bg-secondary/10"
-              icon={<UserPlus className="size-5 text-secondary" />}
-            />
-            <DashbaordCard
-              title="Enrolled Patients"
-              value={adminStats?.enrolledPatients || 0}
-              iconClassName="bg-blue-50"
-              icon={<HeartPulse className="size-5 text-blue-600" />}
-            />
+            {metricCards.map((card) => (
+              <DashbaordCard
+                key={card.key}
+                title={card.title}
+                value={card.value}
+                iconClassName={card.iconClassName}
+                icon={card.icon}
+              />
+            ))}
           </div>
         )}
       </div>
