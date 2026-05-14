@@ -193,11 +193,18 @@ const UploadDailyLogCsvModal = ({ open, onClose }: Props) => {
                   value={progress ? (progress.current / progress.total) * 100 : undefined} 
                   className={cn("h-2", !progress && "animate-pulse")} 
                 />
-                <p className="text-[10px] text-center text-text-low-em font-medium">
-                  {progress 
-                    ? `Processed ${progress.current} of ${progress.total} entries...` 
-                    : "Connecting to server for progress updates..."}
-                </p>
+                <div className="flex justify-between items-center text-[10px] text-text-low-em font-medium">
+                  <span>
+                    {progress 
+                      ? `Processed ${progress.current} of ${progress.total} entries...` 
+                      : "Connecting to server for progress updates..."}
+                  </span>
+                  {progress?.recordsPerSecond !== undefined && (
+                    <span className="text-primary font-bold">
+                      {progress.recordsPerSecond} recs/sec
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>

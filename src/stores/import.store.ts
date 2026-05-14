@@ -5,6 +5,7 @@ interface ImportProgress {
   current: number;
   total: number;
   fileName: string;
+  recordsPerSecond?: number;
 }
 
 interface ImportStore {
