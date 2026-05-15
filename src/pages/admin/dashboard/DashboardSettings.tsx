@@ -42,6 +42,7 @@ const DashboardSettings = () => {
   const [endDate, setEndDate] = useState("");
   const [isToday, setIsToday] = useState(false);
   const [location, setLocation] = useState("all");
+  const [showLast24Hours, setShowLast24Hours] = useState(false);
   const [visitServices, setVisitServices] = useState<string[]>([]);
   const [visitTypes, setVisitTypes] = useState<string[]>([]);
   const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>(defaultVisibleCards);
@@ -77,6 +78,7 @@ const DashboardSettings = () => {
         setEndDate(configRes.data.endDate || "");
       }
       setLocation(configRes.data.location || "all");
+      setShowLast24Hours(configRes.data.showLast24Hours || false);
       setVisitServices(configRes.data.visitServices || []);
       setVisitTypes(configRes.data.visitTypes || []);
       setVisibleCards({
@@ -102,6 +104,7 @@ const DashboardSettings = () => {
       startDate: isAllHistory ? "" : startDate,
       endDate: isToday ? "today" : endDate,
       location,
+      showLast24Hours,
       visitServices,
       visitTypes,
       visibleCards,
@@ -114,6 +117,7 @@ const DashboardSettings = () => {
     setEndDate("");
     setIsToday(false);
     setLocation("all");
+    setShowLast24Hours(false);
     setVisitServices([]);
     setVisitTypes([]);
     setVisibleCards(defaultVisibleCards);
@@ -262,6 +266,22 @@ const DashboardSettings = () => {
                   disabled={isToday}
                   onChange={(e) => setEndDate(e.target.value)}
                   className="h-11 disabled:bg-gray-50 disabled:text-gray-400"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="size-4 text-primary" />
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700">Last 24 Hours View</h3>
+                    <p className="text-[10px] text-gray-400">Only show records from the last 24 hours (EST).</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={showLast24Hours}
+                  onCheckedChange={setShowLast24Hours}
                 />
               </div>
             </div>

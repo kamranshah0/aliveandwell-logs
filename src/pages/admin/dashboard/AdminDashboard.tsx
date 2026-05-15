@@ -33,7 +33,7 @@ const AdminDashboard = () => {
   const globalConfig = configRes?.data || {};
 
   const { data: adminStats, isLoading, isFetching } = useQuery({
-    queryKey: ["adminDailyLogReports", globalConfig.startDate, globalConfig.endDate, globalConfig.location],
+    queryKey: ["adminDailyLogReports", globalConfig.startDate, globalConfig.endDate, globalConfig.location, globalConfig.showLast24Hours],
     queryFn: async () => {
       const resolvedEndDate = globalConfig.endDate === "today" 
         ? format(new Date(), "yyyy-MM-dd") 
@@ -43,6 +43,7 @@ const AdminDashboard = () => {
         startDate: globalConfig.startDate || "",
         endDate: resolvedEndDate,
         branchId: globalConfig.location === "all" ? undefined : globalConfig.location,
+        showLast24Hours: globalConfig.showLast24Hours,
       });
       return res.data.data;
     },

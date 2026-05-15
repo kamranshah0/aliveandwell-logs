@@ -31,7 +31,7 @@ export const deleteAllDailyLogs = async () => {
   return res.data;
 };
 export const getDailyLogStats = () => api.get("/daily-log/stats");
-export const getAdminDailyLogReports = (params?: { startDate?: string; endDate?: string; branchId?: string }) => 
+export const getAdminDailyLogReports = (params?: { startDate?: string; endDate?: string; branchId?: string; showLast24Hours?: boolean }) => 
   api.get("/daily-log/admin-reports", { params });
 
 // FIELD MANAGEMENT
