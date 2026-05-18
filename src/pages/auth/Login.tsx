@@ -35,11 +35,11 @@ const Login = () => {
       } else {
         // ✅ Direct Success (No MFA) — role check here
         const roleName = data.roleName || data.role?.name;
-        const allowedRoles = ["receptionist", "admin", "administrator"];
-        if (roleName && !allowedRoles.includes(roleName)) {
+        const allowedRoles = ["receptionist", "admin", "administrator", "logs", "logs administrator", "logs_administrator"];
+        if (roleName && !allowedRoles.includes(roleName.toLowerCase())) {
           // Wrong role — block access
           try { await logoutApi(); } catch (_) {}
-          setError("Access denied. This portal is for Receptionists and Administrators only.");
+          setError("Access denied. This portal is for Receptionists, Administrators, and Logs Administrators only.");
           return;
         }
 
