@@ -624,30 +624,74 @@ const DailyLog: React.FC = () => {
                               name={field.name}
                               control={control}
                               render={({ field: dateField }) => (
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "w-full h-9 text-xs justify-start text-left font-normal",
-                                        !dateField.value && "text-muted-foreground",
-                                        (editingId ? (field.name === "location" || field.name === "representative") : (field.name === "date" || field.name === "location" || field.name === "representative")) && "bg-gray-50 cursor-not-allowed"
-                                      )}
-                                      disabled={editingId ? (field.name === "location" || field.name === "representative") : (field.name === "date" || field.name === "location" || field.name === "representative")}
-                                    >
-                                      <CalendarIcon className="mr-2 h-3 w-3" />
-                                      {dateField.value ? dateField.value : <span>Pick a date</span>}
-                                    </Button>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                      mode="single"
-                                      selected={dateField.value ? parse(dateField.value, "MM/dd/yyyy", new Date()) : undefined}
-                                      onSelect={(date) => dateField.onChange(date ? format(date, "MM/dd/yyyy") : "")}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                <div className="flex w-full items-center gap-1">
+                                  <Input
+                                    {...dateField}
+                                    onChange={(e) => {
+                                      let val = e.target.value;
+                                      const prev = dateField.value || "";
+                                      if (val.length > prev.length) {
+                                        val = val.replace(/\D/g, "");
+                                        if (val.length >= 2) {
+                                          let month = parseInt(val.slice(0, 2), 10);
+                                          if (month > 12) month = 12;
+                                          if (month === 0) month = 1;
+                                          val = month.toString().padStart(2, "0") + val.slice(2);
+                                        }
+                                        if (val.length >= 4) {
+                                          let day = parseInt(val.slice(2, 4), 10);
+                                          if (day > 31) day = 31;
+                                          if (day === 0) day = 1;
+                                          val = val.slice(0, 2) + day.toString().padStart(2, "0") + val.slice(4);
+                                        }
+                                        if (val.length > 4) {
+                                          val = val.slice(0, 2) + "/" + val.slice(2, 4) + "/" + val.slice(4, 8);
+                                        } else if (val.length > 2) {
+                                          val = val.slice(0, 2) + "/" + val.slice(2);
+                                        }
+                                      }
+                                      dateField.onChange(val);
+                                    }}
+                                    type="text"
+                                    placeholder="MM/DD/YYYY"
+                                    className={cn(
+                                      "h-9 text-xs flex-1 min-w-0",
+                                      (editingId ? (field.name === "location" || field.name === "representative") : (field.name === "date" || field.name === "location" || field.name === "representative")) && "bg-gray-50 cursor-not-allowed"
+                                    )}
+                                    disabled={editingId ? (field.name === "location" || field.name === "representative") : (field.name === "date" || field.name === "location" || field.name === "representative")}
+                                  />
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        type="button"
+                                        className={cn(
+                                          "h-9 w-9 p-0 shrink-0",
+                                          (editingId ? (field.name === "location" || field.name === "representative") : (field.name === "date" || field.name === "location" || field.name === "representative")) && "bg-gray-50 cursor-not-allowed"
+                                        )}
+                                        disabled={editingId ? (field.name === "location" || field.name === "representative") : (field.name === "date" || field.name === "location" || field.name === "representative")}
+                                      >
+                                        <CalendarIcon className="h-4 w-4" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="end">
+                                      <Calendar
+                                        mode="single"
+                                        selected={(() => {
+                                          if (!dateField.value) return undefined;
+                                          const parsed = parse(dateField.value, "MM/dd/yyyy", new Date());
+                                          return isNaN(parsed.getTime()) ? undefined : parsed;
+                                        })()}
+                                        onSelect={(date) => {
+                                          if (date) {
+                                            dateField.onChange(format(date, "MM/dd/yyyy"));
+                                          }
+                                        }}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
                               )}
                             />
                           ) : field.type === "select" ? (
