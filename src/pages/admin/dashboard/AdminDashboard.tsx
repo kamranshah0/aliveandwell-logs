@@ -21,7 +21,6 @@ const defaultVisibleCards = {
   refillPrescriptions: true,
   newPrescriptions: true,
   assistantProgram: true,
-  enrolledPatients: true,
 };
 
 const AdminDashboard = () => {
@@ -110,13 +109,6 @@ const AdminDashboard = () => {
       value: countByFieldValue("drOrdered", "New Prescription"),
       iconClassName: "bg-emerald-50",
       icon: <ClipboardList className="size-5 text-emerald-600" />,
-    },
-    {
-      key: "enrolledPatients",
-      title: "Enrolled Patients",
-      value: adminStats?.enrolledPatients || 0,
-      iconClassName: "bg-blue-50",
-      icon: <HeartPulse className="size-5 text-blue-600" />,
     },
   ].filter((card) => visibleCards[card.key as keyof typeof visibleCards]);
 

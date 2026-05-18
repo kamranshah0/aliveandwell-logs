@@ -27,7 +27,6 @@ const dashboardCards = [
   { key: "refillPrescriptions", label: "Refills Prescription" },
   { key: "newPrescriptions", label: "NEW Prescription" },
   { key: "assistantProgram", label: "Assistant Program" },
-  { key: "enrolledPatients", label: "Enrolled Patients" },
 ];
 
 const defaultVisibleCards = dashboardCards.reduce<Record<string, boolean>>((acc, card) => {
