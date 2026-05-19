@@ -4,6 +4,7 @@ import { api } from "./axios";
 export const login = (payload: {
   username: string;
   password: string;
+  rememberMe?: boolean;
 }) => api.post("/auth/admin/login", payload);
 
 export const verifyMfa = (payload: {

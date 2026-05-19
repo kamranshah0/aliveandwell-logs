@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
 import { LuUser } from "react-icons/lu";
 import { IoKeyOutline } from "react-icons/io5";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AuthInput from "@/components/shared/auth/AuthInput";
 import AuthButton from "@/components/shared/auth/AuthButton";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +17,7 @@ const Login = () => {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { mutate: loginUser, isPending } = useMutation({
@@ -84,7 +85,7 @@ const Login = () => {
 
     if (!validate()) return;
 
-    loginUser({ username, password });
+    loginUser({ username, password, rememberMe });
   };
 
   return (
@@ -127,23 +128,18 @@ const Login = () => {
             {/* ❌ ERROR MESSAGE */}
             {error && <p className="text-red-200 text-sm mt-1">{error}</p>}
 
-            <div className="flex justify-between items-center mt-3">
+            <div className="flex items-center mt-3">
               <div className="flex items-center">
                 <Checkbox
                   id="rememberMe"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
                   className="me-2 size-4   ring-1 ring-secondary"
                 />
                 <Label htmlFor="rememberMe" className="text-white">
                   Remember me
                 </Label>
               </div>
-
-              <Link
-                to="/forgot-password"
-                className="text-yellow text-sm font-medium"
-              >
-                Forgot Password?
-              </Link>
             </div>
 
             {/* ✅ SAME AUTH BUTTON WITH LOADING */}
