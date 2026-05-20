@@ -35,7 +35,7 @@ const FormSwitchGroupSm = ({
         return (
           <label
             key={option.value}
-            className={`flex items-center justify-between gap-4 px-4 py-3 rounded-lg border cursor-pointer transition-all
+            className={`flex w-full min-w-0 items-center justify-between gap-4 px-4 py-3 rounded-lg border cursor-pointer transition-all
               ${
                 isActive
                   ? "border-primary bg-side-panel-card"

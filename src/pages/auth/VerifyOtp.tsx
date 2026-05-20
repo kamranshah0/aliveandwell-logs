@@ -31,8 +31,14 @@ const VerifyOtp = () => {
 
       // ✅ Role check — receptionist & admin allowed in Logs Dashboard
       const roleName = data.roleName || data.role?.name;
+      const permissions = data.permissions || [];
       const allowedRoles = ["receptionist", "admin", "administrator", "logs", "logs administrator", "logs_administrator"];
-      if (roleName && !allowedRoles.includes(roleName.toLowerCase())) {
+      const canAccessLogsDashboard =
+        permissions.includes("dashboard.read") ||
+        permissions.includes("logsDashboard.view") ||
+        (roleName && allowedRoles.includes(roleName.toLowerCase()));
+
+      if (!canAccessLogsDashboard) {
         try { await logoutApi(); } catch (_) {}
         setError("Access denied. This portal is for Receptionists, Administrators, and Logs Administrators only.");
         return;
@@ -50,7 +56,7 @@ const VerifyOtp = () => {
           },
         },
         accessToken: data.accessToken,
-        permissions: data.permissions || [],
+        permissions,
       });
       console.log(data.accessToken);
 

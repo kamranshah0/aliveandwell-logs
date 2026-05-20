@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getDashboardConfig, updateDashboardConfig } from "@/api/dashboard.api";
+import { getBranches } from "@/api/branch.api";
 import { getDailyLogFields } from "@/api/daily-log.api";
 import { toast } from "sonner";
 import MainHeader from "@/components/molecules/MainHeader";
 import MainWrapper from "@/components/molecules/MainWrapper";
 import { Settings, Save, RotateCcw, LayoutDashboard, Stethoscope, Briefcase } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 
 const dashboardCards = [
   { key: "entriesThisMonth", label: "Entries This Month" },
@@ -36,6 +36,7 @@ const defaultVisibleCards = dashboardCards.reduce<Record<string, boolean>>((acc,
 
 const DashboardSettings = () => {
   const queryClient = useQueryClient();
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
   const [startDate, setStartDate] = useState("");
   const [isAllHistory, setIsAllHistory] = useState(false);
   const [endDate, setEndDate] = useState("");
@@ -51,13 +52,28 @@ const DashboardSettings = () => {
     queryFn: getDailyLogFields,
   });
 
+  const { data: branchesRes, isLoading: isLoadingBranches } = useQuery({
+    queryKey: ["branches"],
+    queryFn: getBranches,
+  });
+
+  const branches = branchesRes?.data?.data || [];
+  const activeBranchId = selectedBranchId || null;
+
   const availableVisitServices = fieldsRes?.data?.data?.find((f: any) => f.name === "visitServices")?.options || [];
   const availableVisitTypes = fieldsRes?.data?.data?.find((f: any) => f.name === "visitType")?.options || [];
 
   const { data: configRes, isLoading: isLoadingConfig } = useQuery({
-    queryKey: ["dashboardConfig"],
-    queryFn: getDashboardConfig,
+    queryKey: ["dashboardConfig", activeBranchId],
+    queryFn: () => getDashboardConfig(activeBranchId),
+    enabled: Boolean(activeBranchId),
   });
+
+  useEffect(() => {
+    if (!selectedBranchId && branches.length > 0) {
+      setSelectedBranchId(branches[0].id);
+    }
+  }, [branches, selectedBranchId]);
 
   useEffect(() => {
     if (configRes?.data) {
@@ -88,10 +104,11 @@ const DashboardSettings = () => {
   }, [configRes]);
 
   const updateMutation = useMutation({
-    mutationFn: updateDashboardConfig,
+    mutationFn: (payload: any) => updateDashboardConfig(payload, activeBranchId),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboardConfig", activeBranchId] });
       queryClient.invalidateQueries({ queryKey: ["dashboardConfig"] });
-      toast.success("Dashboard default settings updated successfully");
+      toast.success("Dashboard settings updated successfully");
     },
     onError: () => {
       toast.error("Failed to update dashboard settings");
@@ -99,9 +116,15 @@ const DashboardSettings = () => {
   });
 
   const handleSave = () => {
+    if (!activeBranchId) {
+      toast.error("Please select a branch first");
+      return;
+    }
+
     updateMutation.mutate({
       startDate: isAllHistory ? "" : startDate,
       endDate: isToday ? "today" : endDate,
+      branchId: activeBranchId,
       location,
       showLast24Hours,
       visitServices,
@@ -129,13 +152,17 @@ const DashboardSettings = () => {
     }));
   };
 
-  if (isLoadingConfig) return <div className="p-8 text-center">Loading settings...</div>;
+  if (isLoadingBranches || (activeBranchId && isLoadingConfig)) return <div className="p-8 text-center">Loading settings...</div>;
+
+  if (!activeBranchId && branches.length === 0) {
+    return <div className="p-8 text-center">No branches found.</div>;
+  }
 
   return (
     <MainWrapper>
       <MainHeader
         title="Dashboard Settings"
-        description="Configure default filters for the Admin Dashboard. These settings apply to all users."
+        description="Configure dashboard filters separately for each branch."
       />
 
       <div className="max-w-3xl mx-auto mt-8">
@@ -143,10 +170,29 @@ const DashboardSettings = () => {
           <CardHeader className="bg-primary p-6">
             <CardTitle className="flex items-center gap-2 text-white">
               <Settings className="size-5" />
-              Global Default Filters
+              Branch Dashboard Settings
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 space-y-8">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700">Settings For</label>
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((branch: any) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-gray-400 italic">
+                Select a branch, update its dashboard filters, then save. Users assigned to that branch will use these settings.
+              </p>
+            </div>
+
             <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
               <div className="flex items-center gap-2">
                 <LayoutDashboard className="size-4 text-primary" />
@@ -316,7 +362,7 @@ const DashboardSettings = () => {
                 className="flex items-center gap-2 px-8"
               >
                 <Save className="size-4" />
-                {updateMutation.isPending ? "Saving..." : "Save Global Settings"}
+                {updateMutation.isPending ? "Saving..." : "Save Branch Settings"}
               </Button>
             </div>
           </CardContent>

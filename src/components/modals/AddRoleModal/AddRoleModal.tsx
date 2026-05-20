@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchPermissions } from "@/api/permission.api";
 import { createRole, updateRole } from "@/api/role.api";
 import { mapPermissions } from "@/utils/permissionMapper";
+import { ACTIONS } from "@/utils/permissionParser";
 import { z } from "zod";
 import { useEffect } from "react";
 
@@ -186,14 +187,18 @@ const RoleFormModal = () => {
                       control={control}
                       render={({ field }) => (
                         <FormSwitchGroupSm
-                          options={Object.entries(group.actions).map(
-                            ([action, permissionName]) => ({
+                          options={ACTIONS.filter(
+                            (action) => group.actions[action]
+                          ).map((action) => {
+                            const permissionName = group.actions[action];
+
+                            return {
                               label:
                                 action.charAt(0).toUpperCase() +
                                 action.slice(1),
-                              value: permissionName,
-                            })
-                          )}
+                              value: permissionName!,
+                            };
+                          })}
                           selected={field.value}
                           onChange={field.onChange}
                         />

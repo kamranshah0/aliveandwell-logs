@@ -7,10 +7,14 @@ export const getDashboardRefillActivity = () => {
   return api.get("/dashboard/refill-activity/monthly");
 };
 
-export const getDashboardConfig = () => {
-  return api.get("/dashboard/config");
+export const getDashboardConfig = (branchId?: string | null) => {
+  return api.get("/dashboard/config", {
+    params: branchId ? { branchId } : undefined,
+  });
 };
 
-export const updateDashboardConfig = (payload: any) => {
-  return api.patch("/dashboard/config", payload);
+export const updateDashboardConfig = (payload: any, branchId?: string | null) => {
+  return api.patch("/dashboard/config", payload, {
+    params: branchId ? { branchId } : undefined,
+  });
 };

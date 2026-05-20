@@ -12,6 +12,7 @@ import DashboardStatsCardSkeleton from "@/components/skeletons/DashboardStatsCar
 import PharmacyCardSkeleton from "@/components/skeletons/PharmacyCardSkeleton";
 import DailyActivityChart from "./DailyActivityChart";
 import { format } from "date-fns";
+import { useAuth } from "@/auth/useAuth";
 
 const defaultVisibleCards = {
   entriesThisMonth: true,
@@ -24,29 +25,38 @@ const defaultVisibleCards = {
 };
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
+  const userBranchId = user?.user?.branchId || user?.branchId || null;
+  const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
+  const isHiddenAdmin = username === "sagar";
+  const dashboardConfigBranchId = isHiddenAdmin ? null : userBranchId;
+
   const { data: configRes, isLoading: isLoadingConfig } = useQuery({
-    queryKey: ["dashboardConfig"],
-    queryFn: getDashboardConfig,
+    queryKey: ["dashboardConfig", dashboardConfigBranchId],
+    queryFn: () => getDashboardConfig(dashboardConfigBranchId),
+    enabled: Boolean(userBranchId || isHiddenAdmin),
   });
 
   const globalConfig = configRes?.data || {};
 
   const { data: adminStats, isLoading, isFetching } = useQuery({
-    queryKey: ["adminDailyLogReports", globalConfig.startDate, globalConfig.endDate, globalConfig.location, globalConfig.showLast24Hours],
+    queryKey: ["adminDailyLogReports", dashboardConfigBranchId, globalConfig.startDate, globalConfig.endDate, globalConfig.location, globalConfig.showLast24Hours],
     queryFn: async () => {
       const resolvedEndDate = globalConfig.endDate === "today" 
         ? format(new Date(), "yyyy-MM-dd") 
         : (globalConfig.endDate || "");
+      const reportBranchId =
+        globalConfig.location === "all" ? undefined : globalConfig.location;
 
       const res = await getAdminDailyLogReports({
         startDate: globalConfig.startDate || "",
         endDate: resolvedEndDate,
-        branchId: globalConfig.location === "all" ? undefined : globalConfig.location,
+        branchId: reportBranchId,
         showLast24Hours: globalConfig.showLast24Hours,
       });
       return res.data.data;
     },
-    enabled: !!configRes,
+    enabled: Boolean(configRes && (userBranchId || isHiddenAdmin)),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -136,6 +146,12 @@ const AdminDashboard = () => {
         title="Admin Dashboard"
         description="Comprehensive overview of all log entries across the organization."
       />
+
+      {!userBranchId && !isHiddenAdmin && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          No branch is assigned to this user, so branch dashboard settings cannot be loaded.
+        </div>
+      )}
 
       {/* TOP METRICS */}
       <div className="space-y-4">

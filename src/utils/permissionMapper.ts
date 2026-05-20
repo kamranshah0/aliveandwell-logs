@@ -6,6 +6,7 @@ export type BackendPermission = {
 export type PermissionGroup = {
   module: string;
   actions: {
+    view?: string;
     read?: string;
     create?: string;
     update?: string;
@@ -28,7 +29,7 @@ export function mapPermissions(
       };
     }
 
-    if (["read", "create", "update", "delete"].includes(action)) {
+    if (["view", "read", "create", "update", "delete"].includes(action)) {
       map[module].actions[action as keyof PermissionGroup["actions"]] = p.name;
     }
   });

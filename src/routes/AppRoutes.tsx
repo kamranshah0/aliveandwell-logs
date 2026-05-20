@@ -71,7 +71,10 @@ function RootRedirect() {
   const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
 
   // Special handle for Dashboard (which is on path "/")
-  if (safePermissions.includes("admin.view")) return <ShipmentDashboard />;
+  if (
+    safePermissions.includes("dashboard.read") ||
+    safePermissions.includes("logsDashboard.view")
+  ) return <ShipmentDashboard />;
 
   // Find first allowed module dynamically
   const firstPermittedItem = NAV_ITEMS.find(

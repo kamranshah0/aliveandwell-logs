@@ -6,4 +6,4 @@ export const parsePermission = (name: string) => {
   };
 };
 
-export const ACTIONS = ["read", "create", "update", "delete"] as const;
+export const ACTIONS = ["view", "read", "create", "update", "delete"] as const;

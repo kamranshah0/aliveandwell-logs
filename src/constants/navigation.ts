@@ -13,7 +13,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     name: "Dashboard",
     path: "/",
-    permission: "admin.view",
+    permission: "dashboard.read",
   },
   {
     name: "Daily Logs",
