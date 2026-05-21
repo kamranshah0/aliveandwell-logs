@@ -8,11 +8,12 @@ import { useNotificationStore } from "@/stores/notification.store";
 
 let initialized = false;
 
-export const useInitNotifications = () => {
+export const useInitNotifications = (enabled = true) => {
   const queryClient = useQueryClient();
   const setHasUnread = useNotificationStore((s) => s.setHasUnread);
 
   useEffect(() => {
+    if (!enabled) return;
     if (initialized) return;
     initialized = true;
 
@@ -28,10 +29,11 @@ export const useInitNotifications = () => {
         const hasUnread = notifications.some((n: any) => n.unread);
         setHasUnread(hasUnread);
       } catch (e) {
+        initialized = false;
         console.error("Failed to init notifications", e);
       }
     };
 
     init();
-  }, [queryClient, setHasUnread]);
+  }, [enabled, queryClient, setHasUnread]);
 };

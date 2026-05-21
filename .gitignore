@@ -27,6 +27,7 @@ chrome-user-data
 /tmp
 .env
 ./env
+dist/
 
 packages/react-devtools-core/dist
 packages/react-devtools-extensions/chrome/build

@@ -26,7 +26,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const tokenRes = await refreshToken();
         if (cancelled) return;
 
-        console.log("Refreshed access token");
+        if (import.meta.env.DEV) {
+          console.log("Refreshed access token");
+        }
         // console.log(tokenRes.data.data.accessToken);
 
         setAccessToken(tokenRes.data.data.accessToken);
@@ -46,7 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         //   document.body.classList.remove("receptionist-theme");
         // }
 
-        console.log("AuthProvider: Permissions from getMe (direct):", perms);
+        if (import.meta.env.DEV) {
+          console.log("AuthProvider permissions:", perms);
+        }
         setPermissions(perms);
         setStatus("AUTHENTICATED");
       } catch (err) {

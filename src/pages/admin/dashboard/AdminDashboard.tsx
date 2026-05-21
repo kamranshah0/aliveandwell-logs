@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import MainWrapper from "@/components/molecules/MainWrapper";
 import MainHeader from "@/components/molecules/MainHeader";
 import DashbaordCard from "@/components/molecules/DashbaordCard";
@@ -39,7 +39,7 @@ const AdminDashboard = () => {
 
   const globalConfig = configRes?.data || {};
 
-  const getReportParams = (dashboardMode: "cards" | "charts") => {
+  const getReportParams = () => {
     const resolvedEndDate = globalConfig.endDate === "today"
       ? format(new Date(), "yyyy-MM-dd")
       : (globalConfig.endDate || "");
@@ -52,28 +52,26 @@ const AdminDashboard = () => {
       branchId: reportBranchId,
       showLast24Hours: globalConfig.showLast24Hours,
       includeRawLogs: false,
-      dashboardMode,
+      dashboardMode: "full" as const,
     };
   };
 
-  const { data: cardStats, isLoading: isCardsQueryLoading } = useQuery({
-    queryKey: ["adminDashboardCards", dashboardConfigBranchId, globalConfig.startDate, globalConfig.endDate, globalConfig.location, globalConfig.showLast24Hours],
+  const { data: dashboardStats, isLoading: isDashboardStatsLoading, isFetching: isDashboardStatsFetching } = useQuery({
+    queryKey: [
+      "adminDashboard",
+      dashboardConfigBranchId,
+      globalConfig.startDate,
+      globalConfig.endDate,
+      globalConfig.location,
+      globalConfig.showLast24Hours,
+    ],
     queryFn: async () => {
-      const res = await getAdminDailyLogReports(getReportParams("cards"));
+      const res = await getAdminDailyLogReports(getReportParams());
       return res.data.data;
     },
     enabled: Boolean(configRes && (userBranchId || isHiddenAdmin)),
     staleTime: 5 * 60 * 1000,
-  });
-
-  const { data: chartStats, isLoading: isChartsQueryLoading, isFetching: isChartsFetching } = useQuery({
-    queryKey: ["adminDashboardCharts", dashboardConfigBranchId, globalConfig.startDate, globalConfig.endDate, globalConfig.location, globalConfig.showLast24Hours],
-    queryFn: async () => {
-      const res = await getAdminDailyLogReports(getReportParams("charts"));
-      return res.data.data;
-    },
-    enabled: Boolean(cardStats && configRes && (userBranchId || isHiddenAdmin)),
-    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const visibleCards = {
@@ -82,24 +80,11 @@ const AdminDashboard = () => {
   };
   
   const [branchSearch, setBranchSearch] = useState("");
-  const [chartsReady, setChartsReady] = useState(false);
-
-  useEffect(() => {
-    if (!chartStats) {
-      setChartsReady(false);
-      return;
-    }
-
-    setChartsReady(false);
-    const timer = window.setTimeout(() => setChartsReady(true), 450);
-    return () => window.clearTimeout(timer);
-  }, [chartStats]);
-
-  const isCardsLoading = isLoadingConfig || (isCardsQueryLoading && !cardStats);
-  const isChartsLoading = isCardsLoading || isChartsQueryLoading || isChartsFetching || !chartsReady;
-  const totalEntries = cardStats?.totalEntries || 0;
-  const newPatients = cardStats?.newPatients || 0;
-  const dynamicReports = cardStats?.dynamicReports || [];
+  const isCardsLoading = isLoadingConfig || (isDashboardStatsLoading && !dashboardStats);
+  const isChartsLoading = isCardsLoading || (isDashboardStatsFetching && !dashboardStats);
+  const totalEntries = dashboardStats?.totalEntries || 0;
+  const newPatients = dashboardStats?.newPatients || 0;
+  const dynamicReports = dashboardStats?.dynamicReports || [];
   const countByFieldValue = (fieldName: string, targetValue: string) =>
     dynamicReports
       .find((report: any) => report.name === fieldName)
@@ -112,7 +97,7 @@ const AdminDashboard = () => {
     {
       key: "entriesThisMonth",
       title: "Entries This Month",
-      value: cardStats?.currentMonthEntries || 0,
+      value: dashboardStats?.currentMonthEntries || 0,
       iconClassName: "bg-primary/10",
       icon: <ClipboardList className="size-5 text-primary" />,
     },
@@ -230,33 +215,29 @@ const AdminDashboard = () => {
         )}
       </div>
 
-      {/* MONTHLY TREND CHART */}
       <div className="grid grid-cols-1">
         {isChartsLoading ? (
           <ChartSkeleton height={340} />
         ) : (
-          <DailyActivityChart 
-            data={chartStats?.entriesByMonth?.map((item: any) => ({
+          <DailyActivityChart
+            data={dashboardStats?.entriesByMonth?.map((item: any) => ({
               displayDate: item.name,
-              count: item.count
-            })) || []} 
+              count: item.count,
+            })) || []}
             title="Total Entries by Month"
             description="Monthly entry trends"
           />
         )}
       </div>
 
-      {/* DETAILED BREAKDOWNS */}
       <div className="grid lg:grid-cols-2 gap-8">
-        
-        {/* Entries by Branch */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <TitelMd>Entries by Branch</TitelMd>
             <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Search branch..." 
+              <input
+                type="text"
+                placeholder="Search branch..."
                 value={branchSearch}
                 onChange={(e) => setBranchSearch(e.target.value)}
                 className="text-xs border border-gray-200 rounded-md pl-7 pr-2 py-1.5 focus:ring-1 focus:ring-primary outline-none w-48 shadow-sm"
@@ -270,18 +251,18 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {chartStats?.entriesByBranch
+              {dashboardStats?.entriesByBranch
                 ?.filter((branch: any) => branch.name.toLowerCase().includes(branchSearch.toLowerCase()))
-                ?.slice(0, 10).map((branch: any) => (
-                <DashbaordDetailCard
-                  key={branch.name}
-                  title={branch.name}
-                  iconClassName="bg-primary/5"
-                  icon={<Building2 className="size-4 text-primary" />}
-                  data={[{ label: "Total Entries", value: branch.count }]}
-                />
-              ))}
-              {(!chartStats?.entriesByBranch || chartStats.entriesByBranch.length === 0) && (
+                ?.map((branch: any) => (
+                  <DashbaordDetailCard
+                    key={branch.name}
+                    title={branch.name}
+                    iconClassName="bg-primary/5"
+                    icon={<Building2 className="size-4 text-primary" />}
+                    data={[{ label: "Total Entries", value: branch.count }]}
+                  />
+                ))}
+              {(!dashboardStats?.entriesByBranch || dashboardStats.entriesByBranch.length === 0) && (
                 <p className="text-sm text-gray-500">No branch data available.</p>
               )}
             </div>
@@ -292,11 +273,11 @@ const AdminDashboard = () => {
           {isChartsLoading ? (
             <ChartSkeleton height={300} />
           ) : (
-            <DailyActivityChart 
-              data={chartStats?.entriesByDay?.slice(0, 7).map((item: any) => ({
+            <DailyActivityChart
+              data={dashboardStats?.entriesByDay?.map((item: any) => ({
                 displayDate: item.name,
-                count: item.count
-              })).reverse() || []}
+                count: item.count,
+              })) || []}
               title="Recent Daily Entries"
               description="Entries over the filtered period"
             />

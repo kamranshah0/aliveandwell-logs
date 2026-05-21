@@ -1,67 +1,60 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
-import Login from "../pages/auth/Login";
-import ForgotPassword from "../pages/auth/ForgotPassword";
-import ResetPassword from "../pages/auth/Resetpassword";
-import VerifyOtp from "@/pages/auth/VerifyOtp";
-import AuthLayout from "@/components/layout/authLayout/AuthLayout";
-
-// Shipment Module
-
-import ShipmentDashboard from "../pages/admin/dashboard/Dashboard";
-import DashboardSettings from "@/pages/admin/dashboard/DashboardSettings";
-import ShippmentLayout from "@/components/layout/admin/Layout";
-
-import RolesPermissions from "@/pages/admin/roles-permissions/RolesPermissions";
-
-import Notification from "@/pages/admin/notifications/Notification";
-import Pharmacies from "@/pages/admin/pharmacies/PharmaciesMain";
-import Pharmacy from "@/pages/admin/pharmacies/PharmacyDetails";
-import MedicationsDashboard from "@/pages/admin/medications/dashboard/MedicationsDashboard";
-import PatientsDashboard from "@/pages/admin/patients/dashboard/PatientsDashboard";
-import CreatePatient from "@/pages/admin/patients/create-update-patient/CreatePatient";
-import CreatePercription from "@/pages/admin/medications/create-perscription/CreatePercription";
-import ViewPatient from "@/pages/admin/patients/view-patient/ViewPatient";
-import ViewMedication from "@/pages/admin/pharmacies/view-medication/ViewMedication";
-import Register from "@/pages/auth/Register";
-import DailyLog from "@/pages/admin/daily-log/DailyLog";
-import SettingMain from "@/pages/admin/settings/SettingMain";
-import ReportDashboard from "@/pages/admin/reports/ReportDashboard";
-import LogReportDashboard from "@/pages/admin/daily-log-reports/LogReportDashboard";
-import DailyLogFields from "@/pages/admin/daily-log/DailyLogFields";
-import RefillMain from "@/pages/admin/refills/RefillMain";
-import TeamUsers from "@/pages/admin/team-users/TeamUsers";
-import ViewUser from "@/pages/admin/team-users/view-user/ViewUser";
-import CreateMedicine from "@/pages/admin/medicines/create-medicine/CreateMedicine";
-import EditMedicine from "@/pages/admin/medicines/edit-medicine/EditMedicine";
-import MedicinesDashboard from "@/pages/admin/medicines/dashboard/MedicinesDashboard";
-import EditMedication from "@/pages/admin/medications/edit-medication/EditMedication";
-import Profile from "@/pages/admin/profile/Profile";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
-import NotFound from "@/pages/admin/error-pages/NotFound";
-import EditPatient from "@/pages/admin/patients/create-update-patient/EditPatient";
-import CreateUser from "@/pages/admin/team-users/create-user/CreateUser";
-import PorgramDashboard from "@/pages/admin/programs/ProgramDashboard";
-import DrugCategoryDashboard from "@/pages/admin/drug-categories/dashboard/DrugCategoryDashboard";
-import CreateDrugCategory from "@/pages/admin/drug-categories/create-drug-category/CreateDrugCategory";
-import EditDrugCategory from "@/pages/admin/drug-categories/edit-drug-category/EditDrugCategory";
-import DosageFormDashboard from "@/pages/admin/dosage-forms/dashboard/DosageFormDashboard";
-import CreateDosageForm from "@/pages/admin/dosage-forms/create-dosage-form/CreateDosageForm";
-import EditDosageForm from "@/pages/admin/dosage-forms/edit-dosage-form/EditDosageForm";
 import { useAuth } from "@/auth/useAuth";
 import { NAV_ITEMS } from "@/constants/navigation";
 import AuthenticationLoading from "@/components/molecules/AuthenticationLoading";
-import MedicationDosageDashboard from "@/pages/admin/medication-dosages/dashboard/MedicationDosageDashboard";
-import CreateMedicationDosage from "@/pages/admin/medication-dosages/create-dosage/CreateMedicationDosage";
-import EditMedicationDosage from "@/pages/admin/medication-dosages/edit-dosage/EditMedicationDosage";
-import UnauthorizedIp from "@/pages/admin/error-pages/UnauthorizedIp";
 
-console.log("NAV_ITEMS loaded:", NAV_ITEMS);
+const Login = lazy(() => import("../pages/auth/Login"));
+const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/auth/Resetpassword"));
+const VerifyOtp = lazy(() => import("@/pages/auth/VerifyOtp"));
+const Register = lazy(() => import("@/pages/auth/Register"));
+const AuthLayout = lazy(() => import("@/components/layout/authLayout/AuthLayout"));
+
+const ShipmentDashboard = lazy(() => import("../pages/admin/dashboard/Dashboard"));
+const DashboardSettings = lazy(() => import("@/pages/admin/dashboard/DashboardSettings"));
+const ShippmentLayout = lazy(() => import("@/components/layout/admin/Layout"));
+const RolesPermissions = lazy(() => import("@/pages/admin/roles-permissions/RolesPermissions"));
+const Notification = lazy(() => import("@/pages/admin/notifications/Notification"));
+const Pharmacies = lazy(() => import("@/pages/admin/pharmacies/PharmaciesMain"));
+const Pharmacy = lazy(() => import("@/pages/admin/pharmacies/PharmacyDetails"));
+const MedicationsDashboard = lazy(() => import("@/pages/admin/medications/dashboard/MedicationsDashboard"));
+const PatientsDashboard = lazy(() => import("@/pages/admin/patients/dashboard/PatientsDashboard"));
+const CreatePatient = lazy(() => import("@/pages/admin/patients/create-update-patient/CreatePatient"));
+const CreatePercription = lazy(() => import("@/pages/admin/medications/create-perscription/CreatePercription"));
+const ViewPatient = lazy(() => import("@/pages/admin/patients/view-patient/ViewPatient"));
+const ViewMedication = lazy(() => import("@/pages/admin/pharmacies/view-medication/ViewMedication"));
+const DailyLog = lazy(() => import("@/pages/admin/daily-log/DailyLog"));
+const SettingMain = lazy(() => import("@/pages/admin/settings/SettingMain"));
+const ReportDashboard = lazy(() => import("@/pages/admin/reports/ReportDashboard"));
+const LogReportDashboard = lazy(() => import("@/pages/admin/daily-log-reports/LogReportDashboard"));
+const DailyLogFields = lazy(() => import("@/pages/admin/daily-log/DailyLogFields"));
+const RefillMain = lazy(() => import("@/pages/admin/refills/RefillMain"));
+const TeamUsers = lazy(() => import("@/pages/admin/team-users/TeamUsers"));
+const ViewUser = lazy(() => import("@/pages/admin/team-users/view-user/ViewUser"));
+const CreateMedicine = lazy(() => import("@/pages/admin/medicines/create-medicine/CreateMedicine"));
+const EditMedicine = lazy(() => import("@/pages/admin/medicines/edit-medicine/EditMedicine"));
+const MedicinesDashboard = lazy(() => import("@/pages/admin/medicines/dashboard/MedicinesDashboard"));
+const EditMedication = lazy(() => import("@/pages/admin/medications/edit-medication/EditMedication"));
+const Profile = lazy(() => import("@/pages/admin/profile/Profile"));
+const NotFound = lazy(() => import("@/pages/admin/error-pages/NotFound"));
+const EditPatient = lazy(() => import("@/pages/admin/patients/create-update-patient/EditPatient"));
+const CreateUser = lazy(() => import("@/pages/admin/team-users/create-user/CreateUser"));
+const PorgramDashboard = lazy(() => import("@/pages/admin/programs/ProgramDashboard"));
+const DrugCategoryDashboard = lazy(() => import("@/pages/admin/drug-categories/dashboard/DrugCategoryDashboard"));
+const CreateDrugCategory = lazy(() => import("@/pages/admin/drug-categories/create-drug-category/CreateDrugCategory"));
+const EditDrugCategory = lazy(() => import("@/pages/admin/drug-categories/edit-drug-category/EditDrugCategory"));
+const DosageFormDashboard = lazy(() => import("@/pages/admin/dosage-forms/dashboard/DosageFormDashboard"));
+const CreateDosageForm = lazy(() => import("@/pages/admin/dosage-forms/create-dosage-form/CreateDosageForm"));
+const EditDosageForm = lazy(() => import("@/pages/admin/dosage-forms/edit-dosage-form/EditDosageForm"));
+const MedicationDosageDashboard = lazy(() => import("@/pages/admin/medication-dosages/dashboard/MedicationDosageDashboard"));
+const CreateMedicationDosage = lazy(() => import("@/pages/admin/medication-dosages/create-dosage/CreateMedicationDosage"));
+const EditMedicationDosage = lazy(() => import("@/pages/admin/medication-dosages/edit-dosage/EditMedicationDosage"));
+const UnauthorizedIp = lazy(() => import("@/pages/admin/error-pages/UnauthorizedIp"));
 
 function RootRedirect() {
   const { user, permissions, isAuthenticated, isAuthReady } = useAuth();
-
-  console.log("RootRedirect state:", { isAuthReady, isAuthenticated, permissions });
 
   if (!isAuthReady) return <AuthenticationLoading />;
 
@@ -81,8 +74,6 @@ function RootRedirect() {
     (item) => item.path !== "/" && safePermissions.includes(item.permission)
   );
 
-  console.log("First permitted item:", firstPermittedItem);
-
   if (firstPermittedItem) {
     return <Navigate to={firstPermittedItem.path} replace />;
   }
@@ -93,7 +84,8 @@ function RootRedirect() {
 export default function AppRoutes() {
   const { user } = useAuth();
   return (
-    <Routes>
+    <Suspense fallback={<AuthenticationLoading />}>
+      <Routes>
       {/* Auth */}
       <Route element={<AuthLayout />}>
         <Route path="login" element={<Login />} />
@@ -443,6 +435,7 @@ export default function AppRoutes() {
 
       {/* Fallback Route */}
       <Route path="/*" element={<NotFound />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }

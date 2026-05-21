@@ -25,6 +25,7 @@ const Dashboard = () => {
       return res.data.data;
     },
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
     enabled: !isAdmin, // Only fetch if not an admin to save unnecessary requests
   });
 

@@ -22,6 +22,7 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  ClipboardList,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -49,6 +50,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import MainHeader from "@/components/molecules/MainHeader";
 import MainWrapper from "@/components/molecules/MainWrapper";
+import DashbaordCard from "@/components/molecules/DashbaordCard";
+import DashboardStatsCardSkeleton from "@/components/skeletons/DashboardStatsCardSkeleton";
 import { DataTable } from "@/components/table/DataTable";
 import { DataFilters } from "./filters";
 import type { DailyLogType } from "./types";
@@ -83,6 +86,8 @@ const DailyLog: React.FC = () => {
   const { data: fieldsRes, isLoading: isLoadingFields, refetch: refetchFields } = useQuery({
     queryKey: ["dailyLogFields"],
     queryFn: getDailyLogFields,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const fields = fieldsRes?.data?.data || [];
@@ -219,11 +224,21 @@ const DailyLog: React.FC = () => {
 
 
   const { data: logsData, isLoading } = useQuery({
-    queryKey: ["daily-logs"],
-    queryFn: getDailyLogs,
+    queryKey: ["daily-logs", { limit: 500 }],
+    queryFn: () => getDailyLogs({ limit: 500 }),
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
   const logs = logsData?.data?.data || [];
+  const officeCountTotal = React.useMemo(() => {
+    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+
+    return logs.filter((log: any) => {
+      const timestamp = new Date(log.createdAt).getTime();
+      return Number.isFinite(timestamp) && timestamp >= twentyFourHoursAgo;
+    }).length;
+  }, [logs]);
 
   const dynamicFilters = React.useMemo(() => {
     const locations = Array.from(new Set(logs.map((l: any) => l.location).filter(Boolean)))
@@ -572,6 +587,19 @@ const DailyLog: React.FC = () => {
           </div>
         }
       />
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {isLoading ? (
+          <DashboardStatsCardSkeleton />
+        ) : (
+          <DashbaordCard
+            title="Office Count Total"
+            value={officeCountTotal}
+            iconClassName="bg-primary/10"
+            icon={<ClipboardList className="size-4 text-primary" />}
+          />
+        )}
+      </div>
 
       {isAdding && (
         <Card className="w-full min-w-0 border-primary/20 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300 rounded-xl overflow-hidden mb-8 bg-white">
