@@ -27,6 +27,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getDailyLogs,
+  getDailyLogListMeta,
   createDailyLog,
   updateDailyLog,
   deleteDailyLog,
@@ -80,8 +81,15 @@ const DailyLog: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState<string[] | null>(null);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedLab, setSelectedLab] = useState("");
+  const [selectedDateRange, setSelectedDateRange] = useState<any>(undefined);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const pageSize = 50;
 
   const { data: fieldsRes, isLoading: isLoadingFields, refetch: refetchFields } = useQuery({
     queryKey: ["dailyLogFields"],
@@ -91,6 +99,32 @@ const DailyLog: React.FC = () => {
   });
 
   const fields = fieldsRes?.data?.data || [];
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [searchTerm]);
+
+  const serverFilterParams = React.useMemo(() => ({
+    search: debouncedSearchTerm || undefined,
+    location: selectedLocation || undefined,
+    lab: selectedLab || undefined,
+    startDate: selectedDateRange?.from
+      ? format(selectedDateRange.from, "yyyy-MM-dd")
+      : undefined,
+    endDate: selectedDateRange?.to
+      ? format(selectedDateRange.to, "yyyy-MM-dd")
+      : selectedDateRange?.from
+        ? format(selectedDateRange.from, "yyyy-MM-dd")
+        : undefined,
+  }), [debouncedSearchTerm, selectedLocation, selectedLab, selectedDateRange]);
+
+  useEffect(() => {
+    setPageIndex(0);
+  }, [serverFilterParams]);
 
   const handleDownloadSample = async () => {
     // Explicitly refetch to get latest fields before generating CSV
@@ -224,34 +258,71 @@ const DailyLog: React.FC = () => {
 
 
   const { data: logsData, isLoading } = useQuery({
-    queryKey: ["daily-logs", { limit: 500 }],
-    queryFn: () => getDailyLogs({ limit: 500 }),
+    queryKey: ["daily-logs", pageIndex, pageSize, serverFilterParams],
+    queryFn: () => getDailyLogs({
+      page: pageIndex + 1,
+      limit: pageSize,
+      ...serverFilterParams,
+    }),
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  const logs = logsData?.data?.data || [];
-  const officeCountTotal = React.useMemo(() => {
-    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+  const { data: listMetaData, isLoading: isLoadingListMeta } = useQuery({
+    queryKey: ["daily-log-list-meta"],
+    queryFn: getDailyLogListMeta,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-    return logs.filter((log: any) => {
-      const timestamp = new Date(log.createdAt).getTime();
-      return Number.isFinite(timestamp) && timestamp >= twentyFourHoursAgo;
-    }).length;
-  }, [logs]);
+  const dailyLogsPayload = logsData?.data?.data;
+  const logs = Array.isArray(dailyLogsPayload)
+    ? dailyLogsPayload
+    : dailyLogsPayload?.items || [];
+  const totalLogs = Array.isArray(dailyLogsPayload)
+    ? dailyLogsPayload.length
+    : dailyLogsPayload?.total || 0;
+  const listMeta = listMetaData?.data?.data || {};
+  const locationOptions = listMeta.locations || (Array.isArray(dailyLogsPayload)
+    ? Array.from(new Set(logs.map((l: any) => l.location).filter(Boolean))).sort()
+    : dailyLogsPayload?.locations || []);
+  const officeCountTotal = listMeta.last24HoursCount ?? dailyLogsPayload?.last24HoursCount ?? 0;
 
   const dynamicFilters = React.useMemo(() => {
-    const locations = Array.from(new Set(logs.map((l: any) => l.location).filter(Boolean)))
-      .sort()
-      .map(loc => ({ label: String(loc), value: String(loc) }));
+    const locations = locationOptions.map((loc: string) => ({
+      label: String(loc),
+      value: String(loc),
+    }));
 
-    return DataFilters.map(f => {
-      if (f.id === "location") {
-        return { ...f, options: locations };
+    return DataFilters.map((f: any) => {
+      const id = f.id ?? f.key;
+      if (id === "location") {
+        return { ...f, id, options: locations };
       }
-      return f;
+      return { ...f, id };
     });
-  }, [logs]);
+  }, [locationOptions]);
+
+  const serverFilters = React.useMemo(() => ({
+    values: {
+      search: searchTerm,
+      location: selectedLocation,
+      lab: selectedLab,
+      date: selectedDateRange,
+    },
+    onChange: (id: string, value: any) => {
+      if (id === "search") setSearchTerm(value || "");
+      if (id === "location") setSelectedLocation(value || "");
+      if (id === "lab") setSelectedLab(value || "");
+      if (id === "date") setSelectedDateRange(value);
+    },
+    onReset: () => {
+      setSearchTerm("");
+      setSelectedLocation("");
+      setSelectedLab("");
+      setSelectedDateRange(undefined);
+    },
+  }), [searchTerm, selectedLocation, selectedLab, selectedDateRange]);
 
   const createMutation = useMutation({
     mutationFn: createDailyLog,
@@ -589,7 +660,7 @@ const DailyLog: React.FC = () => {
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {isLoading ? (
+        {isLoadingListMeta ? (
           <DashboardStatsCardSkeleton />
         ) : (
           <DashbaordCard
@@ -820,11 +891,18 @@ const DailyLog: React.FC = () => {
         columns={columnsWithActions}
         data={logs}
         filters={dynamicFilters}
+        serverFilters={serverFilters}
         isLoading={isLoading}
         isBulkDeleting={bulkDeleteMutation.isPending}
         onDelete={(id) => setDeleteId(String(id))}
         onBulkDelete={(ids) => setBulkDeleteIds(ids)}
         defaultSorting={[{ id: "date", desc: true }]}
+        manualPagination={{
+          pageIndex,
+          pageSize,
+          total: totalLogs,
+          onPageChange: setPageIndex,
+        }}
       />
 
       <DeleteConfirmModal

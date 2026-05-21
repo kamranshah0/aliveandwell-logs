@@ -29,8 +29,19 @@ export type DataTableFilter<T> = SearchFilter<T> | SelectFilter<T> | DateRangeFi
 export interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   filters?: DataTableFilter<TData>[];
+  serverFilters?: {
+    values: Record<string, any>;
+    onChange: (id: string, value: any) => void;
+    onReset: () => void;
+  };
 }
 
 export interface DataTablePaginationProps<TData> {
   table: Table<TData>;
+  manualPagination?: {
+    pageIndex: number;
+    pageSize: number;
+    total: number;
+    onPageChange: (pageIndex: number) => void;
+  };
 }

@@ -1,7 +1,17 @@
 import { api } from "./axios";
 
-export const getDailyLogs = (params?: { limit?: number }) =>
+export const getDailyLogs = (params?: {
+  limit?: number;
+  page?: number;
+  search?: string;
+  location?: string;
+  lab?: string;
+  startDate?: string;
+  endDate?: string;
+}) =>
   api.get("/daily-log", { params });
+
+export const getDailyLogListMeta = () => api.get("/daily-log/list-meta");
 
 export const createDailyLog = (payload: any) => api.post("/daily-log", payload);
 

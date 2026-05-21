@@ -9,7 +9,9 @@ export const DataFilters = [
   {
     title: "Lab Status",
     key: "lab",
+    id: "lab",
     type: "select",
+    placeholder: "Lab Status",
     options: [
       { label: "Yes", value: "yes" },
       { label: "No", value: "no" },

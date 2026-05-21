@@ -31,6 +31,17 @@ interface DataTableProps<TData> {
   isLoading?: boolean;
   meta?: any;
   defaultSorting?: { id: string; desc: boolean }[];
+  manualPagination?: {
+    pageIndex: number;
+    pageSize: number;
+    total: number;
+    onPageChange: (pageIndex: number) => void;
+  };
+  serverFilters?: {
+    values: Record<string, any>;
+    onChange: (id: string, value: any) => void;
+    onReset: () => void;
+  };
 }
 
 export function DataTable<TData>({
@@ -43,6 +54,8 @@ export function DataTable<TData>({
   meta,
   isLoading = false,
   defaultSorting = [],
+  manualPagination,
+  serverFilters,
 }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState({});
   const [sorting, setSorting] = useState<any>(defaultSorting);
@@ -79,14 +92,24 @@ export function DataTable<TData>({
 
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    manualPagination: Boolean(manualPagination),
+    pageCount: manualPagination
+      ? Math.ceil(manualPagination.total / manualPagination.pageSize)
+      : undefined,
     enableColumnFilters: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     state: {
       rowSelection,
       sorting,
+      pagination: manualPagination
+        ? {
+            pageIndex: manualPagination.pageIndex,
+            pageSize: manualPagination.pageSize,
+          }
+        : undefined,
     },
 
     globalFilterFn: (row, _columnId, filterValue) => {
@@ -118,7 +141,7 @@ export function DataTable<TData>({
   return (
     <div className="space-y-4 ">
       {filters.length > 0 && (
-        <DataTableToolbar table={table} filters={filters} />
+        <DataTableToolbar table={table} filters={filters} serverFilters={serverFilters} />
       )}
 
       {onBulkDelete && Object.keys(rowSelection).length > 0 && (
@@ -260,7 +283,7 @@ export function DataTable<TData>({
         </div>
       </div>
 
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} manualPagination={manualPagination} />
     </div>
   );
 }

@@ -28,6 +28,7 @@ import { useState, useEffect } from "react"
 export function DataTableToolbar<TData>({
   table,
   filters = [],
+  serverFilters,
 }: DataTableToolbarProps<TData>) {
   const [openDateRangeId, setOpenDateRangeId] = useState<string | null>(null);
   
@@ -44,6 +45,13 @@ export function DataTableToolbar<TData>({
 
   // Determine which filters are active
   const activeFilters = filters.filter((f) => {
+    const id = String((f as any).id ?? (f as any).key);
+    if (serverFilters) {
+      const value = serverFilters.values[id];
+      if (f.type === "date-range") return Boolean(value?.from || value?.to);
+      return value !== "" && value !== undefined && value !== null;
+    }
+
     if (f.type === "search") {
       const g = table.getState().globalFilter as any
       const val = typeof g === "string" ? g : g?.value
@@ -56,6 +64,7 @@ export function DataTableToolbar<TData>({
   })
 
   const resetAll = () => {
+    serverFilters?.onReset();
     table.setGlobalFilter("")
     filters.forEach((f) => {
       if (f.type !== "search") {
@@ -66,8 +75,9 @@ export function DataTableToolbar<TData>({
   }
 
   const removeSingleFilter = (id: string) => {
-    const cfg = filters.find((x) => String(x.id) === id)
+    const cfg = filters.find((x) => String((x as any).id ?? (x as any).key) === id)
     if (!cfg) return
+    serverFilters?.onChange(id, cfg.type === "date-range" ? undefined : "")
     if (cfg.type === "search") table.setGlobalFilter("")
     else table.getColumn(String(id))?.setFilterValue("")
     
@@ -87,12 +97,15 @@ export function DataTableToolbar<TData>({
       {/* TOP FILTER BAR */}
       <div className="flex items-center gap-3 p-2 bg-gray-50/50 rounded-lg border border-gray-100">
         {filters.map((filter) => {
+          const filterId = String((filter as any).id ?? (filter as any).key);
           if (filter.type === "search") {
             const current = table.getState().globalFilter as any
-            const value = typeof current === "string" ? current : current?.value ?? ""
+            const value = serverFilters
+              ? serverFilters.values[filterId] ?? ""
+              : typeof current === "string" ? current : current?.value ?? ""
 
             return (
-              <div key={String(filter.id)} className="relative flex-1 max-w-xs">
+              <div key={filterId} className="relative flex-1 max-w-xs">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
                 <Input
                   placeholder={filter.placeholder || "Search..."}
@@ -100,6 +113,7 @@ export function DataTableToolbar<TData>({
                   value={String(value ?? "")}
                   onChange={(e) => {
                     const val = e.target.value
+                    serverFilters?.onChange(filterId, val)
                     table.setGlobalFilter({
                       value: val,
                       fields: (filter as any).fields?.map(String),
@@ -110,16 +124,19 @@ export function DataTableToolbar<TData>({
             )
           }
 
-          const column = table.getColumn(String(filter.id))
+          const column = table.getColumn(filterId)
           if (!column) return null
 
           // SELECT FILTER
           if (filter.type === "select") {
             return (
               <Select
-                key={String(filter.id)}
-                onValueChange={(value) => column.setFilterValue(value)}
-                value={(column.getFilterValue() as string) ?? ""}
+                key={filterId}
+                onValueChange={(value) => {
+                  serverFilters?.onChange(filterId, value);
+                  column.setFilterValue(value);
+                }}
+                value={serverFilters ? serverFilters.values[filterId] ?? "" : (column.getFilterValue() as string) ?? ""}
               >
                 <SelectTrigger className="w-[180px] bg-white border-gray-200 h-10 ring-offset-transparent focus-visible:ring-primary/20 capitalize font-medium text-gray-700 hover:text-primary hover:border-primary/30 transition-all">
                   <SelectValue placeholder={filter.placeholder || "Select"} />
@@ -142,10 +159,10 @@ export function DataTableToolbar<TData>({
             
             return (
               <Popover 
-                key={String(filter.id)} 
-                open={openDateRangeId === String(filter.id)}
+                key={filterId} 
+                open={openDateRangeId === filterId}
                 onOpenChange={(open) => {
-                  setOpenDateRangeId(open ? String(filter.id) : null);
+                  setOpenDateRangeId(open ? filterId : null);
                   if (open) {
                     // Initialize tempRange from current filter value when opening
                     setTempRange(currentFilterValue);
@@ -201,6 +218,7 @@ export function DataTableToolbar<TData>({
                           )}
                           onClick={() => {
                             setTempRange(range);
+                            serverFilters?.onChange(filterId, range);
                             column.setFilterValue(range); // Apply immediately for presets
                             setOpenDateRangeId(null);
                           }}
@@ -230,6 +248,7 @@ export function DataTableToolbar<TData>({
                          className="text-xs text-gray-400 hover:text-red-500 p-0 h-auto font-medium"
                          onClick={() => {
                            setTempRange(undefined);
+                           serverFilters?.onChange(filterId, undefined);
                            column.setFilterValue(undefined);
                            setOpenDateRangeId(null);
                          }}
@@ -253,6 +272,7 @@ export function DataTableToolbar<TData>({
                             className="text-xs h-8 px-4"
                             onClick={() => {
                               column.setFilterValue(tempRange);
+                              serverFilters?.onChange(filterId, tempRange);
                               setOpenDateRangeId(null);
                             }}
                           >
@@ -286,16 +306,17 @@ export function DataTableToolbar<TData>({
         <div className="flex items-center flex-wrap gap-2 px-1">
           {activeFilters.map((filter) => {
             let displayLabel = ""
+            const filterId = String((filter as any).id ?? (filter as any).key);
 
             if (filter.type === "search") {
-              const g = table.getState().globalFilter as any
+              const g = serverFilters ? serverFilters.values[filterId] : table.getState().globalFilter as any
               displayLabel = typeof g === "string" ? g : g?.value ?? ""
             } else if (filter.type === "select") {
-              const column = table.getColumn(String(filter.id))
-              displayLabel = (column?.getFilterValue() as string) ?? ""
+              const column = table.getColumn(filterId)
+              displayLabel = serverFilters ? serverFilters.values[filterId] ?? "" : (column?.getFilterValue() as string) ?? ""
             } else if (filter.type === "date-range") {
-              const column = table.getColumn(String(filter.id))
-              const val = (column?.getFilterValue() as DateRange) ?? {}
+              const column = table.getColumn(filterId)
+              const val = (serverFilters ? serverFilters.values[filterId] : column?.getFilterValue() as DateRange) ?? {}
               if (val.from) {
                 displayLabel = format(val.from, "MMM dd") + (val.to ? ` - ${format(val.to, "MMM dd, yy")}` : "")
               }
@@ -303,14 +324,14 @@ export function DataTableToolbar<TData>({
 
             return (
               <Badge
-                key={String(filter.id)}
+                key={filterId}
                 variant="secondary"
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary/5 text-primary border border-primary/10 rounded-full font-medium"
               >
                 <span className="opacity-70">{filter.placeholder || String(filter.id)}:</span>
                 <span className="capitalize">{displayLabel}</span>
                 <button 
-                  onClick={() => removeSingleFilter(String(filter.id))}
+                  onClick={() => removeSingleFilter(filterId)}
                   className="ml-1 hover:bg-primary/10 rounded-full p-0.5 transition-colors"
                 >
                   <X className="h-3 w-3" />
