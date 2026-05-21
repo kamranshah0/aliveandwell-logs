@@ -42,7 +42,16 @@ export const deleteAllDailyLogs = async () => {
   return res.data;
 };
 export const getDailyLogStats = () => api.get("/daily-log/stats");
-export const getAdminDailyLogReports = (params?: { startDate?: string; endDate?: string; branchId?: string; showLast24Hours?: boolean; includeRawLogs?: boolean; dashboardMode?: "cards" | "charts" | "full" }) => 
+export const getAdminDailyLogReports = (params?: {
+  startDate?: string;
+  endDate?: string;
+  branchId?: string;
+  showLast24Hours?: boolean;
+  includeRawLogs?: boolean;
+  dashboardMode?: "cards" | "charts" | "full";
+  hiddenAdmin?: boolean;
+  roleId?: string;
+}) => 
   api.get("/daily-log/admin-reports", { params });
 
 // FIELD MANAGEMENT

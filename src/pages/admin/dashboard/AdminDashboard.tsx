@@ -27,14 +27,20 @@ const defaultVisibleCards = {
 const AdminDashboard = () => {
   const { user } = useAuth();
   const userBranchId = user?.user?.branchId || user?.branchId || null;
+  const userRoleId = user?.user?.roleId || user?.roleId || user?.user?.role?.id || user?.role?.id || null;
   const username = user?.user?.username || user?.username || user?.user?.id || user?.id;
   const isHiddenAdmin = username === "sagar";
-  const dashboardConfigBranchId = isHiddenAdmin ? null : userBranchId;
+  const dashboardConfigTarget = isHiddenAdmin
+    ? { branchId: null, roleId: null }
+    : userBranchId
+      ? { branchId: userBranchId, roleId: null }
+      : { branchId: null, roleId: userRoleId };
+  const dashboardConfigKey = dashboardConfigTarget.branchId || dashboardConfigTarget.roleId || "global";
 
   const { data: configRes, isLoading: isLoadingConfig } = useQuery({
-    queryKey: ["dashboardConfig", dashboardConfigBranchId],
-    queryFn: () => getDashboardConfig(dashboardConfigBranchId),
-    enabled: Boolean(userBranchId || isHiddenAdmin),
+    queryKey: ["dashboardConfig", dashboardConfigKey],
+    queryFn: () => getDashboardConfig(dashboardConfigTarget),
+    enabled: Boolean(userBranchId || userRoleId || isHiddenAdmin),
   });
 
   const globalConfig = configRes?.data || {};
@@ -44,7 +50,7 @@ const AdminDashboard = () => {
       ? format(new Date(), "yyyy-MM-dd")
       : (globalConfig.endDate || "");
     const reportBranchId =
-      globalConfig.location === "all" ? undefined : globalConfig.location;
+      isHiddenAdmin || globalConfig.location === "all" ? undefined : globalConfig.location;
 
     return {
       startDate: globalConfig.startDate || "",
@@ -53,13 +59,15 @@ const AdminDashboard = () => {
       showLast24Hours: globalConfig.showLast24Hours,
       includeRawLogs: false,
       dashboardMode: "full" as const,
+      hiddenAdmin: isHiddenAdmin,
+      roleId: !isHiddenAdmin && !userBranchId ? userRoleId || undefined : undefined,
     };
   };
 
   const { data: dashboardStats, isLoading: isDashboardStatsLoading, isFetching: isDashboardStatsFetching } = useQuery({
     queryKey: [
       "adminDashboard",
-      dashboardConfigBranchId,
+      dashboardConfigKey,
       globalConfig.startDate,
       globalConfig.endDate,
       globalConfig.location,
@@ -69,7 +77,7 @@ const AdminDashboard = () => {
       const res = await getAdminDailyLogReports(getReportParams());
       return res.data.data;
     },
-    enabled: Boolean(configRes && (userBranchId || isHiddenAdmin)),
+    enabled: Boolean(configRes && (userBranchId || userRoleId || isHiddenAdmin)),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -186,9 +194,9 @@ const AdminDashboard = () => {
         description="Comprehensive overview of all log entries across the organization."
       />
 
-      {!userBranchId && !isHiddenAdmin && (
+      {!userBranchId && !userRoleId && !isHiddenAdmin && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          No branch is assigned to this user, so branch dashboard settings cannot be loaded.
+          No branch or role is assigned to this user, so dashboard settings cannot be loaded.
         </div>
       )}
 
