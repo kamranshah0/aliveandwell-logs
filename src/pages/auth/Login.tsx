@@ -33,6 +33,14 @@ const Login = () => {
             session: data.session,
           },
         });
+      } else if (data.requiresNewPassword) {
+        navigate("/set-new-password", {
+          state: {
+            username: data.username,
+            session: data.session,
+          },
+          replace: true,
+        });
       } else {
         // ✅ Direct Success (No MFA) — role check here
         const roleName = data.roleName || data.role?.name;

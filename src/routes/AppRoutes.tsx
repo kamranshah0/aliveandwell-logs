@@ -8,6 +8,7 @@ import AuthenticationLoading from "@/components/molecules/AuthenticationLoading"
 const Login = lazy(() => import("../pages/auth/Login"));
 const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("../pages/auth/Resetpassword"));
+const SetNewPassword = lazy(() => import("../pages/auth/SetNewPassword"));
 const VerifyOtp = lazy(() => import("@/pages/auth/VerifyOtp"));
 const Register = lazy(() => import("@/pages/auth/Register"));
 const AuthLayout = lazy(() => import("@/components/layout/authLayout/AuthLayout"));
@@ -93,6 +94,7 @@ export default function AppRoutes() {
         <Route path="verify-otp" element={<VerifyOtp />} />
         <Route path="forgot-verify-otp" element={<ResetPassword />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="set-new-password" element={<SetNewPassword />} />
         {/* <Route path="reset-password" element={<ResetPassword />} /> */}
       </Route>
 
