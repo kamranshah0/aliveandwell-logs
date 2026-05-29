@@ -48,6 +48,7 @@ const ReportBarChart: React.FC<ReportBarChartProps> = ({
   onExport
 }) => {
   const hasData = data && data.length > 0;
+  const chartHeight = hasData ? Math.max(280, data.length * 34) : 280;
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
@@ -83,31 +84,33 @@ const ReportBarChart: React.FC<ReportBarChartProps> = ({
           />
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#F1F5F9" />
-            <XAxis type="number" hide />
-            <YAxis 
-              dataKey="name" 
-              type="category" 
-              tick={{ fill: "#64748B", fontSize: 12, fontWeight: 500 }}
-              axisLine={false}
-              tickLine={false}
-              width={120}
-            />
-            <Tooltip
-              cursor={{ fill: "#F8FAFC", radius: 8 }}
-              content={<CustomTooltip />}
-            />
-            <Bar
-              dataKey="count"
-              fill={color}
-              radius={[0, 6, 6, 0]}
-              barSize={24}
-              animationDuration={1500}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="max-h-[520px] overflow-y-auto pr-2">
+          <ResponsiveContainer width="100%" height={chartHeight}>
+            <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#F1F5F9" />
+              <XAxis type="number" hide />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                tick={{ fill: "#64748B", fontSize: 12, fontWeight: 500 }}
+                axisLine={false}
+                tickLine={false}
+                width={120}
+              />
+              <Tooltip
+                cursor={{ fill: "#F8FAFC", radius: 8 }}
+                content={<CustomTooltip />}
+              />
+              <Bar
+                dataKey="count"
+                fill={color}
+                radius={[0, 6, 6, 0]}
+                barSize={24}
+                animationDuration={1500}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

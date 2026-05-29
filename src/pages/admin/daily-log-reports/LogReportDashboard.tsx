@@ -18,8 +18,8 @@ const LogReportDashboard = () => {
     queryKey: ["adminDailyLogReports", startDate, endDate],
     queryFn: async () => {
       const params: any = {};
-      if (startDate) params.startDate = startDate.toISOString();
-      if (endDate) params.endDate = endDate.toISOString();
+      if (startDate) params.startDate = format(startDate, "yyyy-MM-dd");
+      if (endDate) params.endDate = format(endDate, "yyyy-MM-dd");
       const res = await getAdminDailyLogReports(params);
       return res.data.data;
     },
